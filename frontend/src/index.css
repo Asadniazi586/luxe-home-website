@@ -1,0 +1,192 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #FDF8F5;
+  --color-cream-dark: #F5EDE8;
+  --color-charcoal: #1a1a1a;
+  --color-charcoal-light: #2C2C2C;
+  --color-warm: #D4B895;
+  --color-warm-light: #E8D5B7;
+}
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    /* REMOVE THIS LINE - it conflicts with Lenis */
+    /* scroll-behavior: smooth; */
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: #FDF8F5;
+    color: #1a1a1a;
+  }
+
+  /* Ensure text is always readable */
+  h1, h2, h3, h4, h5, h6 {
+    color: #1a1a1a;
+  }
+
+  p, span, li, a {
+    color: #4a4a4a;
+  }
+
+  /* Dark backgrounds for hero sections */
+  .bg-charcoal {
+    background-color: #1a1a1a;
+  }
+  
+  .bg-charcoal h1, 
+  .bg-charcoal h2, 
+  .bg-charcoal h3,
+  .bg-charcoal p {
+    color: white;
+  }
+}
+
+@layer components {
+  .container-custom {
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .btn-primary {
+    background-color: #1a1a1a;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary:hover {
+    background-color: #2C2C2C;
+  }
+
+  .btn-secondary {
+    border: 1px solid #e5e5e5;
+    color: #4a4a4a;
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-secondary:hover {
+    background-color: #1a1a1a;
+    color: white;
+    border-color: #1a1a1a;
+  }
+}
+
+@layer utilities {
+  .scroll-reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .scroll-reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  /* Hero text visibility utilities */
+  .hero-text-white {
+    color: #ffffff !important;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  .hero-heading {
+    color: #ffffff !important;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+  
+  .hero-subtitle {
+    color: #ffffff !important;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F5EDE8;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4B895;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #B89A6E;
+}
+
+/* Ensure all text has proper contrast */
+.text-gray-300, .text-gray-400, .text-gray-500, .text-gray-600 {
+  color: #4a4a4a !important;
+}
+
+.bg-charcoal .text-gray-300,
+.bg-charcoal .text-gray-400,
+.bg-charcoal .text-gray-500,
+.bg-charcoal .text-gray-600 {
+  color: #d1d5db !important;
+}
+
+/* Product card text */
+.product-card h3,
+.product-card p {
+  color: #1a1a1a;
+}
+
+/* Footer text */
+footer .text-gray-500,
+footer .text-gray-400 {
+  color: #6b7280;
+}
+
+/* Headers always dark */
+h1, h2, h3, h4, h5, h6 {
+  color: #1a1a1a;
+}
+
+/* Dark background headers */
+.bg-charcoal h1,
+.bg-charcoal h2,
+.bg-charcoal h3,
+.bg-charcoal h4 {
+  color: white;
+}
+
+/* Hero section specific overrides */
+section:first-of-type h1,
+section:first-of-type p,
+section:first-of-type span {
+  color: white !important;
+}
+
+section:first-of-type h1 {
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+section:first-of-type p {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+
