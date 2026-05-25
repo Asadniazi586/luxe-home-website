@@ -28,6 +28,19 @@ app.use(express.urlencoded({ extended: true }));
 // CORS middleware
 app.use(cors());
 
+app.get('/', (req, res) => {
+  res.json({ message: 'LUXE HOME API is running! 🚀' });
+});
+
+// Health check endpoint - useful for monitoring
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK', 
+    message: 'Server is healthy',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
