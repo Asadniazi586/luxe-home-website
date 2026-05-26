@@ -221,29 +221,21 @@ export const getOrderByLastEight = async (req, res) => {
   }
 };
 
-// @desc    Get order by order number (short ID like 0a7afb)
+
+// @desc    Get order by order number (from orderNumber field)
 // @route   GET /api/orders/by-number/:orderNumber
-// @access  Private
-// @desc    Get order by order number (short ID like 0a7afb)
-// @route   GET /api/orders/by-number/:orderNumber
-// @access  Private
-// @desc    Get order by order number (short ID like 53a91b)
-// @route   GET /api/orders/by-number/:orderNumber
-// @access  Private
-// @desc    Get order by short ID (last 6 characters of MongoDB ID)
-// @route   GET /api/orders/by-number/:shortId
 // @access  Private
 export const getOrderByNumber = async (req, res) => {
   try {
-    const shortId = req.params.orderNumber;
-    console.log('🔍 Searching for short ID:', shortId);
+    const orderNumber = req.params.orderNumber;
+    console.log('🔍 Searching for order number:', orderNumber);
     
-    // Find order where the last 6 characters of _id match the shortId
-    const orders = await Order.find({}).populate('user', 'name email');
-    
-    const order = orders.find(o => o._id.toString().slice(-6).toLowerCase() === shortId.toLowerCase());
+    // *** THIS IS THE FIX ***
+    // Search by the 'orderNumber' field, not by the '_id' field.
+    const order = await Order.findOne({ orderNumber: orderNumber }).populate('user', 'name email');
     
     if (!order) {
+      console.log('❌ No order found with number:', orderNumber);
       return res.status(404).json({ message: 'Order not found' });
     }
     
@@ -255,7 +247,7 @@ export const getOrderByNumber = async (req, res) => {
     console.log('✅ Order found:', order._id);
     res.json(order);
   } catch (error) {
-    console.error('Get order by short ID error:', error);
+    console.error('Get order by number error:', error);
     res.status(500).json({ message: error.message });
   }
 };

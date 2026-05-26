@@ -12,8 +12,14 @@ export const orderService = {
   },
 
  getOrderByNumber: async (orderNumber) => {
-  const response = await api.get(`/orders/by-number/${orderNumber}`);
-  return response.data;
+  try {
+    const response = await api.get(`/orders/by-number/${orderNumber}`);
+    console.log('Service received:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Service error:', error);
+    throw error;
+  }
 },
 
   getMyOrders: async () => {

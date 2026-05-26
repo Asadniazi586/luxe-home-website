@@ -40,23 +40,27 @@ const handleTrackOrder = async (e) => {
   
   try {
     const trimmedId = orderId.trim().replace(/^#/, '');
+    console.log('Searching for:', trimmedId);
     
-    // Try by short ID first
-    const response = await orderService.getOrderByNumber(trimmedId);
+    const result = await orderService.getOrderByNumber(trimmedId);
+    console.log('Result from service:', result);
     
-    if (response && response._id) {
-      setOrder(response)
-      toast.success('Order found!')
+    // Check if we got a valid order
+    if (result && result._id) {
+      console.log('Setting order state');
+      setOrder(result);
+      toast.success('Order found!');
     } else {
-      setError('Order not found')
+      console.log('No _id in result');
+      setError('Order not found');
     }
   } catch (err) {
-    console.error('Error:', err);
-    setError('Order not found. Please check your Order ID.')
-    setOrder(null)
-    toast.error('Order not found')
+    console.error('Caught error:', err);
+    setError('Order not found. Please check your Order ID.');
+    setOrder(null);
+    toast.error('Order not found');
   } finally {
-    setLoading(false)
+    setLoading(false);
   }
 }
 
