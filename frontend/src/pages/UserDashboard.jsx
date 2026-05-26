@@ -1,8 +1,8 @@
-// UserDashboard.jsx - Updated with auto-refresh (no visible refresh button)
+// UserDashboard.jsx - Updated with order number display
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FiUser, FiPackage, FiHeart, FiSettings, FiLogOut, FiShoppingBag, FiCamera, FiX } from 'react-icons/fi'
+import { FiUser, FiPackage, FiHeart, FiSettings, FiLogOut, FiShoppingBag, FiCamera, FiX, FiTruck } from 'react-icons/fi'
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../contexts/CartContext";
 import { useWishlist } from "../contexts/WishlistContext";
@@ -80,8 +80,8 @@ const UserDashboard = () => {
     if (!user) return;
     
     const interval = setInterval(() => {
-      fetchOrders(false); // Silent refresh - no loading indicator
-    }, 30000); // Refresh every 30 seconds
+      fetchOrders(false);
+    }, 30000);
     
     return () => clearInterval(interval);
   }, [user, fetchOrders]);
@@ -214,6 +214,11 @@ const UserDashboard = () => {
     return statusMap[status] || status;
   };
 
+  // Helper function to get display order ID
+  const getDisplayOrderId = (order) => {
+    return order.orderNumber || order._id?.slice(-6);
+  };
+
   if (!user) {
     return null;
   }
@@ -270,6 +275,13 @@ const UserDashboard = () => {
                     <span className="text-sm">{tab.label}</span>
                   </button>
                 ))}
+                <Link
+                  to="/track-order"
+                  className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50 transition"
+                >
+                  <FiTruck className="w-5 h-5" />
+                  <span className="text-sm">Track Order</span>
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-red-500 hover:bg-red-50 transition"
@@ -333,7 +345,7 @@ const UserDashboard = () => {
                           >
                             <div>
                               <p className="text-sm font-medium text-charcoal">
-                                Order #{order._id?.slice(-6)}
+                                Order #{getDisplayOrderId(order)}
                               </p>
                               <p className="text-xs text-gray-500">
                                 {new Date(order.createdAt).toLocaleDateString()}
@@ -386,7 +398,7 @@ const UserDashboard = () => {
                           <div className="flex justify-between items-start mb-2">
                             <div>
                               <span className="font-medium text-charcoal">
-                                Order #{order._id?.slice(-8)}
+                                Order #{getDisplayOrderId(order)}
                               </span>
                               <p className="text-xs text-gray-500">
                                 {new Date(order.createdAt).toLocaleDateString()}

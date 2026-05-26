@@ -106,24 +106,26 @@ const ProductDetail = () => {
 
   if (!product) return null
 
-  const handleAddToCart = () => {
-    if (product.sizes && product.sizes.length > 0 && !selectedSize) {
-      setSizeError(true)
-      toast.error('Please select a size', { duration: 2000 })
-      return
-    }
-    
-    if (product.colors && product.colors.length > 0 && !selectedColor) {
-      setColorError(true)
-      toast.error('Please select a color', { duration: 2000 })
-      return
-    }
-    
-    setSizeError(false)
-    setColorError(false)
-    addToCart(product, quantity)
-    toast.success(`Added ${quantity} item(s) to cart!`)
+ const handleAddToCart = () => {
+  if (product.sizes && product.sizes.length > 0 && !selectedSize) {
+    setSizeError(true)
+    toast.error('Please select a size', { duration: 2000 })
+    return
   }
+  
+  if (product.colors && product.colors.length > 0 && !selectedColor) {
+    setColorError(true)
+    toast.error('Please select a color', { duration: 2000 })
+    return
+  }
+  
+  setSizeError(false)
+  setColorError(false)
+  
+  // IMPORTANT: Pass selectedSize and selectedColor
+  addToCart(product, quantity, selectedSize, selectedColor)
+  toast.success(`Added ${quantity} ${product.name} to cart!`)
+}
 
   const handleWishlist = () => {
     if (isInWishlist(product.id)) {

@@ -5,9 +5,14 @@ export const orderService = {
     const response = await api.post('/orders', orderData);
     return response.data;
   },
-  // Add this function if not already present
-getOrderById: async (id) => {
-  const response = await api.get(`/orders/${id}`);
+
+  getOrderById: async (id) => {
+    const response = await api.get(`/orders/${id}`);
+    return response.data;
+  },
+
+ getOrderByNumber: async (orderNumber) => {
+  const response = await api.get(`/orders/by-number/${orderNumber}`);
   return response.data;
 },
 

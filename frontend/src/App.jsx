@@ -35,7 +35,7 @@ const Accessibility = React.lazy(() => import('./pages/Accessibility'))
 const CookiePolicy = React.lazy(() => import('./pages/CookiePolicy'))
 const NotFound = React.lazy(() => import('./pages/NotFound'))
 const OrderSuccess = React.lazy(()=> import('./pages/OrderSuccess'))
-
+const OrderTracking = React.lazy(()=>import('./pages/OrderTracking'))
 // Add this route
 function App() {
   return (
@@ -72,6 +72,7 @@ function App() {
                         <Route path="/privacy" element={<PrivacyPolicy />} />
                         <Route path="/terms" element={<TermsOfService />} />
                         <Route path="/order/:id" element={<Order />} />
+                        <Route path="/track-order" element={<OrderTracking />} />
                         <Route path="/press" element={<Press />} />
                         <Route path="/careers" element={<Careers />} />
                         <Route path="/accessibility" element={<Accessibility />} />

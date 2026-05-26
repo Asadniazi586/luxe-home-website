@@ -5,6 +5,9 @@ import { createOrderNotification, createOrderStatusNotification } from './notifi
 // @desc    Create new order
 // @route   POST /api/orders
 // @access  Private
+// @desc    Create new order
+// @route   POST /api/orders
+// @access  Private
 export const createOrder = async (req, res) => {
   try {
     const {
@@ -21,8 +24,16 @@ export const createOrder = async (req, res) => {
       return res.status(400).json({ message: 'No order items' });
     }
 
+    // Generate order number explicitly
+    const chars = '0123456789abcdef';
+    let orderNumber = '';
+    for (let i = 0; i < 6; i++) {
+      orderNumber += chars[Math.floor(Math.random() * chars.length)];
+    }
+
     const order = new Order({
       user: req.user.id,
+      orderNumber: orderNumber,  // Add this explicitly
       orderItems,
       shippingAddress,
       paymentMethod,
@@ -34,11 +45,14 @@ export const createOrder = async (req, res) => {
 
     const createdOrder = await order.save();
     
+    console.log('New order created with number:', createdOrder.orderNumber);
+    
     // Create notification for admin
     await createOrderNotification(createdOrder);
     
     res.status(201).json(createdOrder);
   } catch (error) {
+    console.error('Create order error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -49,11 +63,17 @@ export const createOrder = async (req, res) => {
 export const getOrderById = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id).populate('user', 'name email');
-    if (order) {
-      res.json(order);
-    } else {
-      res.status(404).json({ message: 'Order not found' });
+    
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
     }
+    
+    // Check if user owns this order or is admin
+    if (order.user._id.toString() !== req.user.id.toString() && !req.user.isAdmin) {
+      return res.status(401).json({ message: 'Not authorized to view this order' });
+    }
+    
+    res.json(order);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -133,9 +153,9 @@ export const updateOrderToDelivered = async (req, res) => {
   }
 };
 
-// backend/controllers/orderController.js
-
-// Add this new function to your existing orderController.js
+// @desc    Update order status
+// @route   PUT /api/orders/:id/status
+// @access  Private/Admin
 export const updateOrderStatus = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -151,6 +171,7 @@ export const updateOrderStatus = async (req, res) => {
       return res.status(400).json({ message: 'Invalid status' });
     }
     
+    const oldStatus = order.status;
     order.status = status;
     
     // If status is Delivered, set deliveredAt date
@@ -161,6 +182,9 @@ export const updateOrderStatus = async (req, res) => {
     
     await order.save();
     
+    // Create notification for order status update
+    await createOrderStatusNotification(order, oldStatus, status);
+    
     // Populate user info before sending response
     await order.populate('user', 'name email');
     
@@ -168,5 +192,70 @@ export const updateOrderStatus = async (req, res) => {
   } catch (error) {
     console.error('Update order status error:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// @desc    Get order by last 8 characters of ID
+// @route   GET /api/orders/last-eight/:lastEight
+// @access  Private
+export const getOrderByLastEight = async (req, res) => {
+  try {
+    const lastEight = req.params.lastEight;
+    const allOrders = await Order.find({}).populate('user', 'name email');
+    
+    const order = allOrders.find(o => o._id.toString().slice(-8).toLowerCase() === lastEight.toLowerCase());
+    
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+    
+    // Check if user owns this order or is admin
+    if (order.user._id.toString() !== req.user.id.toString() && !req.user.isAdmin) {
+      return res.status(401).json({ message: 'Not authorized to view this order' });
+    }
+    
+    res.json(order);
+  } catch (error) {
+    console.error('Get order by last eight error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get order by order number (short ID like 0a7afb)
+// @route   GET /api/orders/by-number/:orderNumber
+// @access  Private
+// @desc    Get order by order number (short ID like 0a7afb)
+// @route   GET /api/orders/by-number/:orderNumber
+// @access  Private
+// @desc    Get order by order number (short ID like 53a91b)
+// @route   GET /api/orders/by-number/:orderNumber
+// @access  Private
+// @desc    Get order by short ID (last 6 characters of MongoDB ID)
+// @route   GET /api/orders/by-number/:shortId
+// @access  Private
+export const getOrderByNumber = async (req, res) => {
+  try {
+    const shortId = req.params.orderNumber;
+    console.log('🔍 Searching for short ID:', shortId);
+    
+    // Find order where the last 6 characters of _id match the shortId
+    const orders = await Order.find({}).populate('user', 'name email');
+    
+    const order = orders.find(o => o._id.toString().slice(-6).toLowerCase() === shortId.toLowerCase());
+    
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+    
+    // Check if user owns this order
+    if (order.user._id.toString() !== req.user.id.toString() && !req.user.isAdmin) {
+      return res.status(401).json({ message: 'Not authorized to view this order' });
+    }
+    
+    console.log('✅ Order found:', order._id);
+    res.json(order);
+  } catch (error) {
+    console.error('Get order by short ID error:', error);
+    res.status(500).json({ message: error.message });
   }
 };

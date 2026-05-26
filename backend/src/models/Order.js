@@ -21,12 +21,30 @@ const orderSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    orderNumber: {
+      type: String,
+      unique: true,
+      default: function() {
+        const chars = '0123456789abcdef';
+        let result = '';
+        for (let i = 0; i < 6; i++) {
+          result += chars[Math.floor(Math.random() * chars.length)];
+        }
+        return result;
+      }
+    },
     orderItems: [orderItemSchema],
     shippingAddress: {
+      firstName: { type: String, required: true },
+      lastName: { type: String, required: true },
       address: { type: String, required: true },
+      apartment: { type: String, default: '' },
       city: { type: String, required: true },
-      postalCode: { type: String, required: true },
+      state: { type: String, required: true },
+      postalCode: { type: String, default: '' },
       country: { type: String, required: true },
+      phone: { type: String, required: true },
+      email: { type: String, required: true },
     },
     paymentMethod: {
       type: String,

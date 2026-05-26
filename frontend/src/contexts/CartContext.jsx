@@ -1,56 +1,58 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react'
+import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 
 const CartContext = createContext()
 
+// Helper to generate unique cart item ID
+const getCartItemId = (product) => {
+  return product.cartItemId || `${product.id}_${product.selectedSize || ''}_${product.selectedColor || ''}_${Date.now()}`
+}
+
 const cartReducer = (state, action) => {
   switch (action.type) {
     case 'ADD_TO_CART': {
-      const existingItem = state.items.find(item => item.id === action.payload.id)
+      const cartItemId = action.payload.cartItemId || getCartItemId(action.payload)
+      const existingItem = state.items.find(item => item.cartItemId === cartItemId)
+      
       if (existingItem) {
         const newQuantity = existingItem.quantity + (action.payload.quantity || 1)
-        toast.success(`Added ${action.payload.quantity || 1} more ${action.payload.name} to cart`, {
-          id: 'cart-toast',
-          duration: 2000
-        })
+        // Only show toast if not suppressed
+        if (!action.payload.suppressToast) {
+          toast.success(`Added ${action.payload.quantity || 1} more ${action.payload.name} to cart`, { id: 'cart-toast' })
+        }
         return {
           ...state,
           items: state.items.map(item =>
-            item.id === action.payload.id
+            item.cartItemId === cartItemId
               ? { ...item, quantity: newQuantity }
               : item
           ),
         }
       }
+      
       const quantity = action.payload.quantity || 1
-      toast.success(`${quantity} × ${action.payload.name} added to cart`, {
-        id: 'cart-toast',
-        duration: 2000
-      })
-      return { ...state, items: [...state.items, { ...action.payload, quantity }] }
+      // Only show toast if not suppressed
+      if (!action.payload.suppressToast) {
+        toast.success(`${quantity} × ${action.payload.name} added to cart`, { id: 'cart-toast' })
+      }
+      
+      return { 
+        ...state, 
+        items: [...state.items, { ...action.payload, quantity, cartItemId }] 
+      }
     }
     
     case 'REMOVE_FROM_CART': {
-      const item = state.items.find(item => item.id === action.payload)
-      toast.success(`${item?.name || 'Item'} removed from cart`, {
-        id: 'cart-toast',
-        duration: 1500
-      })
-      return { ...state, items: state.items.filter(item => item.id !== action.payload) }
+      const item = state.items.find(item => item.cartItemId === action.payload)
+      toast.success(`${item?.name || 'Item'} removed from cart`, { id: 'cart-toast' })
+      return { ...state, items: state.items.filter(item => item.cartItemId !== action.payload) }
     }
     
     case 'UPDATE_QUANTITY': {
-      const item = state.items.find(item => item.id === action.payload.id)
-      if (item && action.payload.quantity !== item.quantity) {
-        toast.success(`${item.name} quantity updated to ${action.payload.quantity}`, {
-          id: 'cart-toast',
-          duration: 1500
-        })
-      }
       return {
         ...state,
         items: state.items.map(item =>
-          item.id === action.payload.id
+          item.cartItemId === action.payload.cartItemId
             ? { ...item, quantity: Math.max(1, action.payload.quantity) }
             : item
         ),
@@ -58,9 +60,7 @@ const cartReducer = (state, action) => {
     }
     
     case 'CLEAR_CART':
-      if (state.items.length > 0) {
-        toast.success('Cart cleared', { id: 'cart-toast', duration: 1500 })
-      }
+      toast.success('Cart cleared', { id: 'cart-toast' })
       return { ...state, items: [] }
     
     default:
@@ -82,17 +82,40 @@ export const CartProvider = ({ children }) => {
     return savedCart ? { items: JSON.parse(savedCart) } : { items: [] }
   })
 
+  // Use ref to track if this is the initial load
+  const isInitialMount = useRef(true)
+
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
     localStorage.setItem('cart', JSON.stringify(state.items))
   }, [state.items])
 
-  const addToCart = (product, quantity = 1) => {
-    dispatch({ type: 'ADD_TO_CART', payload: { ...product, quantity } })
+  const addToCart = (product, quantity = 1, selectedSize = '', selectedColor = '', suppressToast = false) => {
+    // Create a unique ID for each cart item
+    const uniqueId = `${product.id}_${selectedSize}_${selectedColor}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`
+    
+    dispatch({ 
+      type: 'ADD_TO_CART', 
+      payload: { 
+        ...product, 
+        quantity,
+        selectedSize,
+        selectedColor,
+        cartItemId: uniqueId,
+        suppressToast
+      } 
+    })
   }
   
-  const removeFromCart = (id) => dispatch({ type: 'REMOVE_FROM_CART', payload: id })
+  const removeFromCart = (cartItemId) => dispatch({ type: 'REMOVE_FROM_CART', payload: cartItemId })
   
-  const updateQuantity = (id, quantity) => dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } })
+  const updateQuantity = (cartItemId, quantity) => dispatch({ 
+    type: 'UPDATE_QUANTITY', 
+    payload: { cartItemId, quantity } 
+  })
   
   const clearCart = () => dispatch({ type: 'CLEAR_CART' })
 
