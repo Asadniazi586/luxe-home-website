@@ -215,9 +215,9 @@ const UserDashboard = () => {
   };
 
   // Helper function to get display order ID
-  const getDisplayOrderId = (order) => {
-    return order.orderNumber || order._id?.slice(-6);
-  };
+const getDisplayOrderId = (order) => {
+  return order._id.slice(-6);
+};
 
   if (!user) {
     return null;

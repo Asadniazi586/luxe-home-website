@@ -222,32 +222,29 @@ export const getOrderByLastEight = async (req, res) => {
 };
 
 
-// @desc    Get order by order number (from orderNumber field)
-// @route   GET /api/orders/by-number/:orderNumber
+// @desc    Get order by short ID (last 6 characters of MongoDB _id)
+// @route   GET /api/orders/by-number/:shortId
 // @access  Private
 export const getOrderByNumber = async (req, res) => {
   try {
-    const orderNumber = req.params.orderNumber;
-    console.log('🔍 Searching for order number:', orderNumber);
+    const shortId = req.params.orderNumber;
+    console.log('🔍 Searching for short ID:', shortId);
     
-    // *** THIS IS THE FIX ***
-    // Search by the 'orderNumber' field, not by the '_id' field.
-    const order = await Order.findOne({ orderNumber: orderNumber }).populate('user', 'name email');
+    // Find all user's orders
+    const orders = await Order.find({ user: req.user.id }).populate('user', 'name email');
+    
+    // Find order where last 6 characters of _id match
+    const order = orders.find(o => o._id.toString().slice(-6).toLowerCase() === shortId.toLowerCase());
     
     if (!order) {
-      console.log('❌ No order found with number:', orderNumber);
+      console.log('❌ No order found with short ID:', shortId);
       return res.status(404).json({ message: 'Order not found' });
-    }
-    
-    // Check if user owns this order
-    if (order.user._id.toString() !== req.user.id.toString() && !req.user.isAdmin) {
-      return res.status(401).json({ message: 'Not authorized to view this order' });
     }
     
     console.log('✅ Order found:', order._id);
     res.json(order);
   } catch (error) {
-    console.error('Get order by number error:', error);
+    console.error('Get order by short ID error:', error);
     res.status(500).json({ message: error.message });
   }
 };
