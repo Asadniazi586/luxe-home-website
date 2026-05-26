@@ -27,42 +27,39 @@ const OrderTracking = () => {
     return index !== -1 ? index : 0
   }
 
-const handleTrackOrder = async (e) => {
-  e.preventDefault()
-  
-  if (!orderId.trim()) {
-    toast.error('Please enter an Order ID')
-    return
-  }
-
-  setLoading(true)
-  setError(null)
-  
-  try {
-    const trimmedId = orderId.trim().replace(/^#/, '');
-    console.log('Searching for:', trimmedId);
+  const handleTrackOrder = async (e) => {
+    e.preventDefault()
     
-    const result = await orderService.getOrderByNumber(trimmedId);
-    console.log('Result from service:', result);
-    
-    // Check if we got a valid order
-    if (result && result._id) {
-      console.log('Setting order state');
-      setOrder(result);
-      toast.success('Order found!');
-    } else {
-      console.log('No _id in result');
-      setError('Order not found');
+    if (!orderId.trim()) {
+      toast.error('Please enter an Order ID')
+      return
     }
-  } catch (err) {
-    console.error('Caught error:', err);
-    setError('Order not found. Please check your Order ID.');
-    setOrder(null);
-    toast.error('Order not found');
-  } finally {
-    setLoading(false);
+
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const trimmedId = orderId.trim().replace(/^#/, '');
+      console.log('Searching for:', trimmedId);
+      
+      const result = await orderService.getOrderByNumber(trimmedId);
+      console.log('Result from service:', result);
+      
+      if (result && result._id) {
+        setOrder(result);
+        toast.success('Order found!');
+      } else {
+        setError('Order not found');
+      }
+    } catch (err) {
+      console.error('Caught error:', err);
+      setError('Order not found. Please check your Order ID.');
+      setOrder(null);
+      toast.error('Order not found');
+    } finally {
+      setLoading(false);
+    }
   }
-}
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A'
@@ -96,30 +93,31 @@ const handleTrackOrder = async (e) => {
           <p className="text-gray-500">Enter your order ID to check the current status</p>
         </div>
 
-        {/* Search Form */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <form onSubmit={handleTrackOrder} className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Order ID</label>
-              <input
-                type="text"
-                value={orderId}
-                onChange={(e) => setOrderId(e.target.value)}
-                placeholder="Enter your order ID (e.g., 0a7afb or full ID)"
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-warm"
-              />
-              <p className="text-xs text-gray-400 mt-1">You can find this in your order confirmation email or dashboard</p>
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="md:self-end px-6 py-3 bg-warm text-white rounded-lg font-medium hover:bg-warm/80 transition disabled:opacity-50 flex items-center gap-2 justify-center"
-            >
-              <FiSearch className="w-4 h-4" />
-              {loading ? 'Searching...' : 'Track Order'}
-            </button>
-          </form>
-        </div>
+       {/* Search Form - Field and Button in one line */}
+<div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+  <form onSubmit={handleTrackOrder}>
+    <div className="flex gap-3 items-start">
+      <div className="flex-1">
+        <input
+          type="text"
+          value={orderId}
+          onChange={(e) => setOrderId(e.target.value)}
+          placeholder="Enter your order ID (e.g., 0a7afb)"
+          className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-warm focus:ring-1 focus:ring-warm transition text-gray-700 text-sm"
+        />
+        <p className="text-xs text-gray-400 mt-2">You can find this in your order confirmation email or dashboard</p>
+      </div>
+      <button
+        type="submit"
+        disabled={loading}
+        className="px-4 py-2 bg-warm text-white rounded-lg font-medium hover:bg-warm/80 transition disabled:opacity-50 flex items-center gap-2 justify-center whitespace-nowrap text-sm mt-0"
+      >
+        <FiSearch className="w-4 h-4" />
+        {loading ? 'Searching...' : 'Track Order'}
+      </button>
+    </div>
+  </form>
+</div>
 
         {/* Error Message */}
         {error && (
