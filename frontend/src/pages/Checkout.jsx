@@ -100,7 +100,7 @@ const Checkout = () => {
     setBillingData({ ...billingData, [e.target.name]: e.target.value })
   }
 
- const handlePlaceOrder = async (e) => {
+const handlePlaceOrder = async (e) => {
   e.preventDefault()
   
   if (!formData.state) {
@@ -120,9 +120,8 @@ const Checkout = () => {
       color: item.selectedColor || '',
     }))
 
-    const shippingPrice = 249
-    const taxPrice = 0
-    const total = totalPrice + shippingPrice + taxPrice
+    const shippingPrice = 5.00 // Changed to $5.00 USD
+    const total = totalPrice + shippingPrice
 
     const orderData = {
       orderItems,
@@ -148,21 +147,9 @@ const Checkout = () => {
         postalCode: billingData.zipCode,
         country: billingData.country,
         phone: billingData.phone,
-      } : {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        address: formData.address,
-        apartment: formData.apartment,
-        city: formData.city,
-        state: formData.state,
-        postalCode: formData.zipCode,
-        country: formData.country,
-        phone: formData.phone,
-        email: formData.email,
-      },
+      } : null,
       paymentMethod: selectedPaymentMethod === 'cod' ? 'Cash on Delivery' : selectedPaymentMethod === 'payfast' ? 'PAYFAST' : selectedPaymentMethod === 'alfalah' ? 'Alfalah Gateway' : 'BaadMay',
       itemsPrice: totalPrice,
-      taxPrice: taxPrice,
       shippingPrice,
       totalPrice: total,
     }
@@ -174,16 +161,10 @@ const Checkout = () => {
         orderId: order._id.slice(-8).toUpperCase(),
         date: new Date().toLocaleDateString(),
         time: new Date().toLocaleTimeString(),
-        items: cartItems.map(item => ({
-          ...item,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.image,
-          name: item.name
-        })),
+        items: cartItems,
         subtotal: totalPrice,
         shippingCharge: shippingPrice,
-        tax: taxPrice,
+        tax: 0,
         total: total,
         paymentStatus: selectedPaymentMethod === 'cod' ? 'Pending' : 'Awaiting Confirmation',
         paymentMethod: selectedPaymentMethod === 'cod' ? 'Cash on Delivery' : 
@@ -217,9 +198,9 @@ const Checkout = () => {
       }
       
       localStorage.setItem('orderSuccessData', JSON.stringify(orderSuccessData))
-      clearCart()
+      
       toast.success('Order placed successfully!')
-      navigate('/order-success', { state: orderSuccessData, replace: true })
+      window.location.href = '/order-success'
     } else {
       toast.error('Failed to create order')
       setLoading(false)
@@ -242,7 +223,7 @@ const Checkout = () => {
     return 'Pay now'
   }
 
-  const shippingPrice = 249
+  const shippingPrice = 5.00
   const finalTotal = totalPrice + shippingPrice
 
   return (
@@ -454,9 +435,9 @@ const Checkout = () => {
                 <h2 className="text-lg font-medium text-gray-800 mb-4">Shipping method</h2>
                 <div className="flex justify-between items-center p-3 border rounded-lg bg-gray-50">
                   <span className="text-gray-700">Standard Shipping</span>
-                  <span className="text-gray-800 font-medium">Rs {shippingPrice.toLocaleString()}</span>
+                  <span className="text-gray-800 font-medium">${shippingPrice.toFixed(2)}</span>
                 </div>
-                <p className="text-xs text-gray-400 mt-2">Delivery within 3-5 business days across Pakistan</p>
+                <p className="text-xs text-gray-400 mt-2">Delivery within 3-5 business days</p>
               </div>
 
               {/* Payment */}
@@ -661,7 +642,7 @@ const Checkout = () => {
                     {item.selectedColor && <p className="text-xs text-gray-500">Color: {item.selectedColor}</p>}
                     <p className="text-xs text-gray-500 mt-1">Qty: {item.quantity}</p>
                   </div>
-                  <p className="text-sm font-medium text-gray-800">Rs {(item.price * item.quantity).toLocaleString()}</p>
+                  <p className="text-sm font-medium text-gray-800">${(item.price * item.quantity).toFixed(2)}</p>
                 </div>
               ))}
               
@@ -669,18 +650,18 @@ const Checkout = () => {
               <div className="space-y-2 pt-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="text-gray-800">Rs {totalPrice.toLocaleString()}</span>
+                  <span className="text-gray-800">${totalPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Shipping</span>
-                  <span className="text-gray-800">Rs {shippingPrice.toLocaleString()}</span>
+                  <span className="text-gray-800">${shippingPrice.toFixed(2)}</span>
                 </div>
                 <div className="border-t pt-3 mt-3">
                   <div className="flex justify-between font-medium">
                     <span className="text-gray-800">Total</span>
-                    <span className="text-gray-800 text-lg">Rs {finalTotal.toLocaleString()}</span>
+                    <span className="text-gray-800 text-lg">${finalTotal.toFixed(2)}</span>
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">PKR</p>
+                  <p className="text-xs text-gray-400 mt-1">USD</p>
                 </div>
               </div>
 
@@ -704,36 +685,24 @@ const Checkout = () => {
               <div className="mt-6 pt-4 border-t">
                 <p className="text-xs text-gray-500 text-center mb-3">Secured payment methods</p>
                 <div className="flex justify-center items-center gap-4">
-                  {/* Visa - Professional SVG */}
                   <div className="bg-white rounded-lg border border-gray-200 p-2 shadow-sm">
                     <svg width="45" height="28" viewBox="0 0 75 45" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <rect width="75" height="45" rx="6" fill="#1434CB"/>
-                      <path d="M28 15L23 30H18L23 15H28Z" fill="white"/>
-                      <path d="M45 15.5C43.5 15 41.5 15 39.5 15C36 15 33 16.5 33 19.5C33 22.5 36 23.5 38.5 24C40.5 24.5 41.5 25 41.5 26C41.5 27.5 39.5 28 37.5 27.5C36 27 35 26.5 34 25.5L33 28C34.5 29 36.5 29.5 38.5 30C42.5 30 46 28.5 46 25.5C46 22 42 21 39.5 20C38 19.5 37 19 37 18C37 17 38 16.5 39.5 16.5C41 16.5 42.5 17 43.5 17.5L45 15.5Z" fill="white"/>
-                      <path d="M58 15H63L58 30H53L58 15Z" fill="white"/>
                       <text x="10" y="30" fill="white" fontSize="12" fontWeight="bold" fontFamily="Arial">VISA</text>
                     </svg>
                   </div>
-                  
-                  {/* Mastercard - Professional SVG */}
                   <div className="bg-white rounded-lg border border-gray-200 p-2 shadow-sm">
                     <svg width="45" height="28" viewBox="0 0 75 45" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <rect width="75" height="45" rx="6" fill="#F79E1B"/>
-                      <path d="M38 10C32 10 27 14.5 27 22.5C27 30.5 32 35 38 35C44 35 49 30.5 49 22.5C49 14.5 44 10 38 10Z" fill="#EB001B"/>
-                      <path d="M52 10C46 10 41 14.5 41 22.5C41 30.5 46 35 52 35C58 35 63 30.5 63 22.5C63 14.5 58 10 52 10Z" fill="#F79E1B"/>
+                      <text x="8" y="30" fill="white" fontSize="12" fontWeight="bold" fontFamily="Arial">MC</text>
                     </svg>
                   </div>
-                  
-                  {/* American Express - Professional SVG */}
                   <div className="bg-white rounded-lg border border-gray-200 p-2 shadow-sm">
                     <svg width="45" height="28" viewBox="0 0 75 45" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <rect width="75" height="45" rx="6" fill="#006FCF"/>
-                      <text x="8" y="28" fill="white" fontSize="10" fontWeight="bold" fontFamily="Arial">AMERICAN</text>
-                      <text x="8" y="38" fill="white" fontSize="8" fontFamily="Arial">EXPRESS</text>
+                      <text x="8" y="28" fill="white" fontSize="10" fontWeight="bold" fontFamily="Arial">AMEX</text>
                     </svg>
                   </div>
-                  
-                  {/* PayPal - Professional SVG */}
                   <div className="bg-white rounded-lg border border-gray-200 p-2 shadow-sm">
                     <svg width="45" height="28" viewBox="0 0 75 45" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <rect width="75" height="45" rx="6" fill="#179BD7"/>
@@ -741,8 +710,6 @@ const Checkout = () => {
                     </svg>
                   </div>
                 </div>
-                
-                {/* 100% Safe Checkout */}
                 <p className="text-center text-xs text-gray-400 mt-3 flex items-center justify-center gap-1">
                   <FiLock className="w-3 h-3" /> 100% Safe Checkout
                 </p>
