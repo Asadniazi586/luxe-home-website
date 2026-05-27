@@ -1,5 +1,5 @@
-import React from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { 
   FiCheckCircle, FiPackage, FiMapPin, FiCreditCard, 
@@ -9,10 +9,36 @@ import {
 
 const OrderSuccess = () => {
   const location = useLocation()
-  const orderData = location.state
+  const navigate = useNavigate()
+  
+  // Try to get order data from location.state first, then from localStorage
+  let orderData = location.state
+  
+  // If no state, try to load from localStorage
+  useEffect(() => {
+    if (!orderData || !orderData.orderId) {
+      const savedOrder = localStorage.getItem('orderSuccessData')
+      if (savedOrder) {
+        orderData = JSON.parse(savedOrder)
+        // If we have saved order data but no state, we're good
+      } else {
+        // No order data at all, redirect to shop after 3 seconds
+        const timer = setTimeout(() => {
+          navigate('/shop')
+        }, 3000)
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [])
 
-  // If no order data, redirect to shop
-  if (!orderData || !orderData.orderId) {
+  // Get orderData from localStorage if state is empty
+  const finalOrderData = orderData?.orderId ? orderData : (() => {
+    const saved = localStorage.getItem('orderSuccessData')
+    return saved ? JSON.parse(saved) : null
+  })()
+
+  // If no order data, show error
+  if (!finalOrderData || !finalOrderData.orderId) {
     return (
       <div className="bg-cream min-h-screen pt-32 flex items-center justify-center">
         <div className="text-center">
@@ -43,7 +69,7 @@ const OrderSuccess = () => {
     if (navigator.share) {
       navigator.share({
         title: 'Order Confirmation - LUXE HOME',
-        text: `Order #${orderData.orderId} confirmed! Total: $${orderData.total}`,
+        text: `Order #${finalOrderData.orderId} confirmed! Total: $${finalOrderData.total}`,
         url: window.location.href
       })
     } else {
@@ -77,20 +103,20 @@ const OrderSuccess = () => {
           <div className="flex flex-wrap justify-between items-center gap-4">
             <div>
               <p className="text-sm text-gray-500">Order ID</p>
-              <p className="text-xl font-semibold text-charcoal">{orderData.orderId}</p>
+              <p className="text-xl font-semibold text-charcoal">{finalOrderData.orderId}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Order Date</p>
-              <p className="text-gray-800">{orderData.date} at {orderData.time}</p>
+              <p className="text-gray-800">{finalOrderData.date} at {finalOrderData.time}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Payment Status</p>
               <span className={`inline-block px-3 py-1 rounded-full text-sm ${
-                orderData.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700' : 
-                orderData.paymentStatus === 'Awaiting Confirmation' ? 'bg-blue-100 text-blue-700' :
+                finalOrderData.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700' : 
+                finalOrderData.paymentStatus === 'Awaiting Confirmation' ? 'bg-blue-100 text-blue-700' :
                 'bg-yellow-100 text-yellow-700'
               }`}>
-                {orderData.paymentStatus}
+                {finalOrderData.paymentStatus}
               </span>
             </div>
             <div className="flex gap-2">
@@ -120,7 +146,7 @@ const OrderSuccess = () => {
                 <FiPackage className="text-warm" /> Order Summary
               </h3>
               <div className="space-y-3">
-                {orderData.items?.map((item, idx) => (
+                {finalOrderData.items?.map((item, idx) => (
                   <div key={idx} className="flex gap-4 pb-3 border-b border-gray-100">
                     <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
                     <div className="flex-1">
@@ -137,19 +163,19 @@ const OrderSuccess = () => {
               <div className="mt-4 pt-4 border-t space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="text-gray-800">${orderData.subtotal?.toFixed(2)}</span>
+                  <span className="text-gray-800">${finalOrderData.subtotal?.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Shipping</span>
-                  <span className="text-gray-800">${orderData.shippingCharge?.toFixed(2)}</span>
+                  <span className="text-gray-800">${finalOrderData.shippingCharge?.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Tax</span>
-                  <span className="text-gray-800">${orderData.tax?.toFixed(2)}</span>
+                  <span className="text-gray-800">${finalOrderData.tax?.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-semibold text-lg pt-2 border-t">
                   <span className="text-charcoal">Total</span>
-                  <span className="text-charcoal">${orderData.total?.toFixed(2)}</span>
+                  <span className="text-charcoal">${finalOrderData.total?.toFixed(2)}</span>
                 </div>
               </div>
             </motion.div>
@@ -182,17 +208,17 @@ const OrderSuccess = () => {
                 <FiTruck className="text-warm" /> Shipping Address
               </h3>
               <div className="space-y-1 text-sm text-gray-600">
-                <p className="font-medium text-gray-800">{orderData.shippingAddress?.name}</p>
-                <p>{orderData.shippingAddress?.address}</p>
-                <p>{orderData.shippingAddress?.city}, {orderData.shippingAddress?.postalCode}</p>
-                <p>{orderData.shippingAddress?.country}</p>
+                <p className="font-medium text-gray-800">{finalOrderData.shippingAddress?.name}</p>
+                <p>{finalOrderData.shippingAddress?.address}</p>
+                <p>{finalOrderData.shippingAddress?.city}, {finalOrderData.shippingAddress?.postalCode}</p>
+                <p>{finalOrderData.shippingAddress?.country}</p>
                 <div className="flex items-center gap-2 mt-2 pt-2 border-t">
                   <FiPhone size={14} className="text-gray-400" />
-                  <span>{orderData.shippingAddress?.phone}</span>
+                  <span>{finalOrderData.shippingAddress?.phone}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <FiMail size={14} className="text-gray-400" />
-                  <span>{orderData.shippingAddress?.email}</span>
+                  <span>{finalOrderData.shippingAddress?.email}</span>
                 </div>
               </div>
             </motion.div>
@@ -208,10 +234,10 @@ const OrderSuccess = () => {
                 <FiUser className="text-warm" /> Billing Address
               </h3>
               <div className="space-y-1 text-sm text-gray-600">
-                <p className="font-medium text-gray-800">{orderData.billingAddress?.name}</p>
-                <p>{orderData.billingAddress?.address}</p>
-                <p>{orderData.billingAddress?.city}, {orderData.billingAddress?.postalCode}</p>
-                <p>{orderData.billingAddress?.country}</p>
+                <p className="font-medium text-gray-800">{finalOrderData.billingAddress?.name}</p>
+                <p>{finalOrderData.billingAddress?.address}</p>
+                <p>{finalOrderData.billingAddress?.city}, {finalOrderData.billingAddress?.postalCode}</p>
+                <p>{finalOrderData.billingAddress?.country}</p>
               </div>
             </motion.div>
 
@@ -228,14 +254,14 @@ const OrderSuccess = () => {
               <div className="space-y-2">
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <div className="w-10 h-10 bg-warm/20 rounded-full flex items-center justify-center">
-                    {orderData.paymentMethod === 'Cash on Delivery' ? '💰' : 
-                     orderData.paymentMethod === 'Bank Transfer' ? '🏦' : '💳'}
+                    {finalOrderData.paymentMethod === 'Cash on Delivery' ? '💰' : 
+                     finalOrderData.paymentMethod === 'Bank Transfer' ? '🏦' : '💳'}
                   </div>
                   <div>
-                    <p className="font-medium text-gray-800">{orderData.paymentMethod}</p>
+                    <p className="font-medium text-gray-800">{finalOrderData.paymentMethod}</p>
                     <p className="text-xs text-gray-500">
-                      {orderData.paymentMethod === 'Cash on Delivery' ? 'Pay when you receive your order' :
-                       orderData.paymentMethod === 'Bank Transfer' ? 'Awaiting payment confirmation' :
+                      {finalOrderData.paymentMethod === 'Cash on Delivery' ? 'Pay when you receive your order' :
+                       finalOrderData.paymentMethod === 'Bank Transfer' ? 'Awaiting payment confirmation' :
                        'Online payment confirmed'}
                     </p>
                   </div>
@@ -272,7 +298,7 @@ const OrderSuccess = () => {
           <h3 className="text-lg font-medium text-charcoal mb-6 text-center">Order Timeline</h3>
           <div className="flex flex-wrap justify-between items-center">
             {[
-              { status: 'Order Placed', date: orderData.date, time: orderData.time, active: true },
+              { status: 'Order Placed', date: finalOrderData.date, time: finalOrderData.time, active: true },
               { status: 'Order Confirmed', date: 'Processing', time: '', active: true },
               { status: 'Shipped', date: 'Pending', time: '', active: false },
               { status: 'Out for Delivery', date: 'Pending', time: '', active: false },
