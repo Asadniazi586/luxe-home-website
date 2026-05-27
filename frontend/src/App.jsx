@@ -36,7 +36,7 @@ const CookiePolicy = React.lazy(() => import('./pages/CookiePolicy'))
 const NotFound = React.lazy(() => import('./pages/NotFound'))
 const OrderSuccess = React.lazy(()=> import('./pages/OrderSuccess'))
 const OrderTracking = React.lazy(()=>import('./pages/OrderTracking'))
-// Add this route
+
 function App() {
   return (
     <AuthProvider>
@@ -48,6 +48,9 @@ function App() {
                 {/* Admin Routes - No Layout */}
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/admin/*" element={<AdminRoutes />} />
+                
+                {/* Order Success - No Layout (MUST be outside Layout) */}
+                <Route path="/order-success" element={<OrderSuccess />} />
                 
                 {/* Main Routes - With Layout */}
                 <Route path="/*" element={
@@ -78,7 +81,6 @@ function App() {
                         <Route path="/accessibility" element={<Accessibility />} />
                         <Route path="/cookies" element={<CookiePolicy />} />
                         <Route path="*" element={<NotFound />} />
-                        <Route path="/order-success" element={<OrderSuccess />} />
                       </Routes>
                     </Suspense>
                   </Layout>

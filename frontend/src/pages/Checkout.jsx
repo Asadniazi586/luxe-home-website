@@ -100,98 +100,136 @@ const Checkout = () => {
     setBillingData({ ...billingData, [e.target.name]: e.target.value })
   }
 
-  const handlePlaceOrder = async (e) => {
-    e.preventDefault()
-    
-    if (!formData.state) {
-      toast.error('Please select a province')
-      return
+ const handlePlaceOrder = async (e) => {
+  e.preventDefault()
+  
+  if (!formData.state) {
+    toast.error('Please select a province')
+    return
+  }
+  
+  setLoading(true)
+  try {
+    const orderItems = cartItems.map(item => ({
+      product: item.id || item._id,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+      image: item.image,
+      size: item.selectedSize || '',
+      color: item.selectedColor || '',
+    }))
+
+    const shippingPrice = 249
+    const taxPrice = 0
+    const total = totalPrice + shippingPrice + taxPrice
+
+    const orderData = {
+      orderItems,
+      shippingAddress: {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        address: formData.address,
+        apartment: formData.apartment,
+        city: formData.city,
+        state: formData.state,
+        postalCode: formData.zipCode,
+        country: formData.country,
+        phone: formData.phone,
+        email: formData.email,
+      },
+      billingAddress: billingOption === 'different' ? {
+        firstName: billingData.firstName,
+        lastName: billingData.lastName,
+        address: billingData.address,
+        apartment: billingData.apartment,
+        city: billingData.city,
+        state: billingData.state,
+        postalCode: billingData.zipCode,
+        country: billingData.country,
+        phone: billingData.phone,
+      } : {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        address: formData.address,
+        apartment: formData.apartment,
+        city: formData.city,
+        state: formData.state,
+        postalCode: formData.zipCode,
+        country: formData.country,
+        phone: formData.phone,
+        email: formData.email,
+      },
+      paymentMethod: selectedPaymentMethod === 'cod' ? 'Cash on Delivery' : selectedPaymentMethod === 'payfast' ? 'PAYFAST' : selectedPaymentMethod === 'alfalah' ? 'Alfalah Gateway' : 'BaadMay',
+      itemsPrice: totalPrice,
+      taxPrice: taxPrice,
+      shippingPrice,
+      totalPrice: total,
     }
+
+    const order = await orderService.createOrder(orderData)
     
-    setLoading(true)
-    try {
-      const orderItems = cartItems.map(item => ({
-        product: item.id || item._id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        image: item.image,
-        size: item.selectedSize || '',
-        color: item.selectedColor || '',
-      }))
-
-      const shippingPrice = 249
-      const total = totalPrice + shippingPrice
-
-      const orderData = {
-        orderItems,
+    if (order && order._id) {
+      const orderSuccessData = {
+        orderId: order._id.slice(-8).toUpperCase(),
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString(),
+        items: cartItems.map(item => ({
+          ...item,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image,
+          name: item.name
+        })),
+        subtotal: totalPrice,
+        shippingCharge: shippingPrice,
+        tax: taxPrice,
+        total: total,
+        paymentStatus: selectedPaymentMethod === 'cod' ? 'Pending' : 'Awaiting Confirmation',
+        paymentMethod: selectedPaymentMethod === 'cod' ? 'Cash on Delivery' : 
+                        selectedPaymentMethod === 'payfast' ? 'PAYFAST' :
+                        selectedPaymentMethod === 'alfalah' ? 'Alfalah Gateway' : 'BaadMay',
         shippingAddress: {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
+          name: `${formData.firstName} ${formData.lastName}`,
           address: formData.address,
-          apartment: formData.apartment,
           city: formData.city,
-          state: formData.state,
           postalCode: formData.zipCode,
           country: formData.country,
           phone: formData.phone,
           email: formData.email,
         },
         billingAddress: billingOption === 'different' ? {
-          firstName: billingData.firstName,
-          lastName: billingData.lastName,
+          name: `${billingData.firstName} ${billingData.lastName}`,
           address: billingData.address,
-          apartment: billingData.apartment,
           city: billingData.city,
-          state: billingData.state,
           postalCode: billingData.zipCode,
           country: billingData.country,
           phone: billingData.phone,
-        } : null,
-        paymentMethod: selectedPaymentMethod === 'cod' ? 'Cash on Delivery' : selectedPaymentMethod === 'payfast' ? 'PAYFAST' : selectedPaymentMethod === 'alfalah' ? 'Alfalah Gateway' : 'BaadMay',
-        itemsPrice: totalPrice,
-        shippingPrice,
-        totalPrice: total,
+        } : {
+          name: `${formData.firstName} ${formData.lastName}`,
+          address: formData.address,
+          city: formData.city,
+          postalCode: formData.zipCode,
+          country: formData.country,
+          phone: formData.phone,
+          email: formData.email,
+        },
       }
-
-      const order = await orderService.createOrder(orderData)
       
-      if (order && order._id) {
-        const orderSuccessData = {
-          orderId: order._id.slice(-8).toUpperCase(),
-          date: new Date().toLocaleDateString(),
-          time: new Date().toLocaleTimeString(),
-          items: cartItems,
-          shippingAddress: {
-            name: `${formData.firstName} ${formData.lastName}`,
-            address: formData.address,
-            city: formData.city,
-            postalCode: formData.zipCode,
-            country: formData.country,
-            phone: formData.phone,
-            email: formData.email,
-          },
-          paymentMethod: selectedPaymentMethod,
-          paymentStatus: 'Pending',
-          subtotal: totalPrice,
-          shippingCharge: shippingPrice,
-          total: total,
-        }
-        
-        localStorage.setItem('orderSuccessData', JSON.stringify(orderSuccessData))
-        clearCart()
-        toast.success('Order placed successfully!')
-        navigate('/order-success', { state: orderSuccessData, replace: true })
-      } else {
-        toast.error('Failed to create order')
-        setLoading(false)
-      }
-    } catch (error) {
-      console.error('Order error:', error)
-      toast.error(error.response?.data?.message || 'Failed to place order')
+      localStorage.setItem('orderSuccessData', JSON.stringify(orderSuccessData))
+      clearCart()
+      toast.success('Order placed successfully!')
+      navigate('/order-success', { state: orderSuccessData, replace: true })
+    } else {
+      toast.error('Failed to create order')
       setLoading(false)
     }
+  } catch (error) {
+    console.error('Order error:', error)
+    toast.error(error.response?.data?.message || 'Failed to place order')
+    setLoading(false)
   }
+}
 
   if (cartItems.length === 0) {
     navigate('/cart')
