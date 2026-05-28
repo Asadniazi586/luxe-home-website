@@ -7,15 +7,15 @@ import toast from 'react-hot-toast'
 
 const AdminLogin = () => {
   const navigate = useNavigate()
-  const { user, login } = useAuth()
+  const { user, adminLogin } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   })
 
-  // Check if already logged in as admin
   useEffect(() => {
     if (user && user.role === 'admin') {
       navigate('/admin', { replace: true })
@@ -24,24 +24,20 @@ const AdminLogin = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
+    setError(null)
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    const result = await login(formData.email, formData.password)
+    setError(null)
+    
+    const result = await adminLogin(formData.email, formData.password)
+    
     if (result.success) {
-      setTimeout(() => {
-        const loggedInUser = JSON.parse(localStorage.getItem('user') || '{}')
-        if (loggedInUser.role === 'admin') {
-          navigate('/admin', { replace: true })
-        } else {
-          toast.error('You do not have admin access')
-          localStorage.removeItem('token')
-          localStorage.removeItem('user')
-          window.location.reload()
-        }
-      }, 100)
+      navigate('/admin', { replace: true })
+    } else {
+      setError(result.error || 'Invalid admin credentials')
     }
     setLoading(false)
   }
@@ -59,9 +55,15 @@ const AdminLogin = () => {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-2xl shadow-sm p-8"
         >
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm text-center">
+              {error}
+            </div>
+          )}
+          
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Email Address</label>
+              <label className="block text-sm text-gray-600 mb-1">Admin Email</label>
               <div className="relative">
                 <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
@@ -77,7 +79,7 @@ const AdminLogin = () => {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Password</label>
+              <label className="block text-sm text-gray-600 mb-1">Admin Password</label>
               <div className="relative">
                 <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
@@ -87,7 +89,7 @@ const AdminLogin = () => {
                   onChange={handleChange}
                   required
                   className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warm transition text-gray-800 placeholder-gray-400"
-                  placeholder="Enter your password"
+                  placeholder="Enter admin password"
                 />
                 <button
                   type="button"
@@ -97,6 +99,7 @@ const AdminLogin = () => {
                   {showPassword ? <FiEyeOff className="w-5 h-5 text-gray-400" /> : <FiEye className="w-5 h-5 text-gray-400" />}
                 </button>
               </div>
+              <p className="text-xs text-gray-400 mt-1">Use credentials from .env file</p>
             </div>
 
             <button

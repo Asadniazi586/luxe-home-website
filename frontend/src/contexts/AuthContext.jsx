@@ -31,6 +31,20 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
+  // Admin login function
+  const adminLogin = async (email, password) => {
+    try {
+      const data = await authService.adminLogin(email, password)
+      setUser(data)
+      toast.success('Admin login successful!')
+      return { success: true }
+    } catch (error) {
+      const message = error.response?.data?.message || 'Admin login failed'
+      toast.error(message)
+      return { success: false, error: message }
+    }
+  }
+
   const register = async (name, email, password) => {
     try {
       const data = await authService.register({ name, email, password })
@@ -51,7 +65,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, adminLogin, register, logout }}>
       {children}
     </AuthContext.Provider>
   )

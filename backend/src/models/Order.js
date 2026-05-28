@@ -1,9 +1,9 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const orderItemSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product',
+    ref: "Product",
     required: true,
   },
   name: String,
@@ -18,30 +18,30 @@ const orderSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
     orderNumber: {
       type: String,
       unique: true,
-      default: function() {
-        const chars = '0123456789abcdef';
-        let result = '';
+      default: function () {
+        const chars = "0123456789abcdef";
+        let result = "";
         for (let i = 0; i < 6; i++) {
           result += chars[Math.floor(Math.random() * chars.length)];
         }
         return result;
-      }
+      },
     },
     orderItems: [orderItemSchema],
     shippingAddress: {
       firstName: { type: String, required: true },
       lastName: { type: String, required: true },
       address: { type: String, required: true },
-      apartment: { type: String, default: '' },
+      apartment: { type: String, default: "" },
       city: { type: String, required: true },
       state: { type: String, required: true },
-      postalCode: { type: String, default: '' },
+      postalCode: { type: String, default: "" },
       country: { type: String, required: true },
       phone: { type: String, required: true },
       email: { type: String, required: true },
@@ -49,7 +49,7 @@ const orderSchema = new mongoose.Schema(
     paymentMethod: {
       type: String,
       required: true,
-      default: 'Card',
+      default: "Card",
     },
     paymentResult: {
       id: { type: String },
@@ -93,14 +93,17 @@ const orderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
-      default: 'Pending',
+      enum: ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"],
+      default: "Pending",
+    },
+    shippedAt: {
+      type: Date,
     },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-const Order = mongoose.model('Order', orderSchema);
+const Order = mongoose.model("Order", orderSchema);
 export default Order;

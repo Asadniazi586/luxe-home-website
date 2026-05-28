@@ -25,10 +25,10 @@ export const registerUser = async (req, res) => {
       name,
       email,
       password,
+      role: 'user',
     });
 
     if (user) {
-      // Create notification for admin about new user registration
       await createUserRegistrationNotification(user);
       
       res.status(201).json({
@@ -46,7 +46,7 @@ export const registerUser = async (req, res) => {
   }
 };
 
-// @desc    Login user
+// @desc    Login user (Regular User Only)
 // @route   POST /api/auth/login
 // @access  Public
 export const loginUser = async (req, res) => {
@@ -63,6 +63,11 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
+    // IMPORTANT: Block admin users from regular login
+    if (user.role === 'admin') {
+      return res.status(403).json({ message: 'Admin cannot login here. Please use admin portal.' });
+    }
+
     res.json({
       _id: user.id,
       name: user.name,
@@ -71,6 +76,48 @@ export const loginUser = async (req, res) => {
       token: generateToken(user.id),
     });
   } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Admin Login (Only for admin)
+// @route   POST /api/auth/admin/login
+// @access  Public
+export const adminLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    
+    if (!adminEmail || !adminPassword) {
+      return res.status(500).json({ message: 'Admin credentials not configured in .env file' });
+    }
+    
+    if (email === adminEmail && password === adminPassword) {
+      let adminUser = await User.findOne({ email: adminEmail });
+      
+      if (!adminUser) {
+        adminUser = await User.create({
+          name: 'Administrator',
+          email: adminEmail,
+          password: adminPassword,
+          role: 'admin',
+        });
+      }
+      
+      res.json({
+        _id: adminUser.id,
+        name: adminUser.name,
+        email: adminUser.email,
+        role: 'admin',
+        token: generateToken(adminUser.id),
+      });
+    } else {
+      return res.status(401).json({ message: 'Invalid admin credentials' });
+    }
+  } catch (error) {
+    console.error('Admin login error:', error);
     res.status(500).json({ message: error.message });
   }
 };

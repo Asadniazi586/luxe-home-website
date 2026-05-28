@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi'
@@ -6,13 +6,26 @@ import { useAuth } from '../contexts/AuthContext'
 
 const Login = () => {
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { user, login } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   })
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'admin') {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        navigate('/admin/login')
+      } else {
+        navigate('/dashboard')
+      }
+    }
+  }, [user, navigate])
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -21,10 +34,17 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // Check if trying to login with admin email format
+    if (formData.email.toLowerCase().includes('admin')) {
+      setError('Admin users must login through the Admin Portal')
+      return
+    }
+    
     setLoading(true)
     const result = await login(formData.email, formData.password)
-    if (result.success) {
-      navigate('/dashboard')
+    if (!result.success) {
+      setError(result.error)
     }
     setLoading(false)
   }
@@ -43,6 +63,12 @@ const Login = () => {
             animate={{ opacity: 1, y: 0 }}
             className="bg-white rounded-2xl shadow-sm p-8"
           >
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm text-center">
+                {error}
+              </div>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="block text-sm text-gray-600 mb-1">Email Address</label>

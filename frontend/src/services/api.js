@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-
 const API_URL = 'https://luxe-home-website-backend.onrender.com/api';
 
 const api = axios.create({
