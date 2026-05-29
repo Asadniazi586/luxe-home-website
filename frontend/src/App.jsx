@@ -9,6 +9,8 @@ import Layout from './components/layouts/Layout'
 import Loader from './components/ui/Loader'
 import AdminLogin from './admin/pages/AdminLogin'
 import AdminRoutes from './admin/routes/AdminRoutes'
+import { useAuth } from './contexts/AuthContext'
+import { Navigate } from 'react-router-dom'
 
 // Lazy load all pages
 const Home = React.lazy(() => import('./pages/Home'))
@@ -37,6 +39,30 @@ const NotFound = React.lazy(() => import('./pages/NotFound'))
 const OrderSuccess = React.lazy(()=> import('./pages/OrderSuccess'))
 const OrderTracking = React.lazy(()=>import('./pages/OrderTracking'))
 
+// Protected Route Component
+const ProtectedRoute = ({ children, requiredRole }) => {
+  const { user, loading } = useAuth()
+  
+  if (loading) {
+    return <Loader />
+  }
+  
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+  
+  if (requiredRole && user.role !== requiredRole) {
+    if (requiredRole === 'admin') {
+      return <Navigate to="/" replace />
+    }
+    if (requiredRole === 'user') {
+      return <Navigate to="/" replace />
+    }
+  }
+  
+  return children
+}
+
 function App() {
   return (
     <AuthProvider>
@@ -49,7 +75,7 @@ function App() {
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/admin/*" element={<AdminRoutes />} />
                 
-                {/* Order Success - No Layout (MUST be outside Layout) */}
+                {/* Order Success - No Layout */}
                 <Route path="/order-success" element={<OrderSuccess />} />
                 
                 {/* Main Routes - With Layout */}
@@ -65,8 +91,16 @@ function App() {
                         <Route path="/checkout" element={<Checkout />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
-                        <Route path="/dashboard" element={<UserDashboard />} />
-                        <Route path="/wishlist" element={<Wishlist />} />
+                        <Route path="/dashboard" element={
+                          <ProtectedRoute requiredRole="user">
+                            <UserDashboard />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/wishlist" element={
+                          <ProtectedRoute requiredRole="user">
+                            <Wishlist />
+                          </ProtectedRoute>
+                        } />
                         <Route path="/contact" element={<Contact />} />
                         <Route path="/faqs" element={<FAQs />} />
                         <Route path="/returns" element={<Returns />} />

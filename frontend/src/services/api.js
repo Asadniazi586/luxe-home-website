@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_URL = 'https://luxe-home-website-backend.onrender.com/api';
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://luxe-home-website-backend.onrender.com/api'
+  : 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -9,10 +11,16 @@ const api = axios.create({
   },
 });
 
-// Add token to requests
+// Add token to requests - check which token to use based on path
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    // Check if it's an admin request
+    const isAdminRequest = config.url.includes('/admin') || window.location.pathname.startsWith('/admin')
+    
+    const token = isAdminRequest 
+      ? localStorage.getItem('admin_token')
+      : localStorage.getItem('user_token')
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

@@ -17,6 +17,7 @@ const AdminLogin = () => {
   })
 
   useEffect(() => {
+    // Check if admin is already logged in - don't clear user tokens
     if (user && user.role === 'admin') {
       navigate('/admin', { replace: true })
     }

@@ -15,15 +15,13 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
+  // Don't clear admin tokens - just check if user is logged in
   useEffect(() => {
-    if (user) {
-      if (user.role === 'admin') {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        navigate('/admin/login')
-      } else {
-        navigate('/dashboard')
-      }
+    // Only check user role, don't clear admin storage
+    if (user && user.role === 'admin') {
+      navigate('/admin/login')
+    } else if (user) {
+      navigate('/dashboard')
     }
   }, [user, navigate])
 
