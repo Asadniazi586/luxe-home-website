@@ -1,11 +1,21 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FiTrash2, FiPlus, FiMinus, FiShoppingBag, FiArrowLeft } from 'react-icons/fi'
 import { useCart } from '../contexts/CartContext'
+import { useAuth } from '../contexts/AuthContext'
 
 const Cart = () => {
+  const navigate = useNavigate()
+  const { user } = useAuth()
   const { cartItems, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart()
+
+  // Redirect admin to shop
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      navigate('/shop')
+    }
+  }, [user, navigate])
 
   if (cartItems.length === 0) {
     return (
@@ -52,11 +62,9 @@ const Cart = () => {
                   />
                   <div className="flex-1">
                     <h3 className="font-medium text-charcoal">{item.name}</h3>
-                    {/* Display size if selected */}
                     {item.selectedSize && (
                       <p className="text-xs text-gray-400 mt-0.5">Size: {item.selectedSize}</p>
                     )}
-                    {/* Display color if selected */}
                     {item.selectedColor && (
                       <p className="text-xs text-gray-400">Color: {item.selectedColor}</p>
                     )}

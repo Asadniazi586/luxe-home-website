@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -22,6 +22,13 @@ const Checkout = () => {
   const [textOffers, setTextOffers] = useState(false);
   const [billingOption, setBillingOption] = useState("same");
   const [discountCode, setDiscountCode] = useState("");
+
+  // Redirect admin to shop
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      navigate('/shop');
+    }
+  }, [user, navigate]);
 
   // Bank selection state
   const [selectedBank, setSelectedBank] = useState(null);
@@ -181,7 +188,7 @@ const Checkout = () => {
         color: item.selectedColor || "",
       }));
 
-      const shippingPrice = 5.0; // Changed to $5.00 USD
+      const shippingPrice = 5.0;
       const total = totalPrice + shippingPrice;
 
       const orderData = {

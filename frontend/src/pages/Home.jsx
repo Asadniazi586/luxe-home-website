@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useScroll, useTransform } from 'framer-motion'
-import { FiArrowRight, FiStar, FiTruck, FiRefreshCw, FiShoppingBag, FiHeart, FiChevronRight } from 'react-icons/fi'
+import { FiArrowRight, FiStar, FiTruck, FiRefreshCw, FiShoppingBag, FiHeart, FiChevronRight, FiPlus } from 'react-icons/fi'
 import { productService } from '../services/productService'
+import { useAuth } from '../contexts/AuthContext'
+import { useCart } from '../contexts/CartContext'
+import toast from 'react-hot-toast'
 
 const Home = () => {
   const { scrollYProgress } = useScroll()
@@ -10,13 +13,16 @@ const Home = () => {
   const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95])
   const [bestsellers, setBestsellers] = useState([])
   const [loading, setLoading] = useState(true)
+  const { user } = useAuth()
+  const { addToCart } = useCart()
+  
+  const isAdmin = user?.role === 'admin'
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true)
         const data = await productService.getProducts()
-        // Get first 4 products as bestsellers
         const products = data.products || []
         setBestsellers(products.slice(0, 4))
       } catch (error) {
@@ -41,6 +47,13 @@ const Home = () => {
     document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el))
     return () => observer.disconnect()
   }, [])
+
+  const handleAddToCart = (product, e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    addToCart(product, 1)
+    toast.success(`Added ${product.name} to cart!`)
+  }
 
   const categories = [
     {
@@ -217,7 +230,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Bestsellers Section */}
+      {/* Bestsellers Section with Add to Cart buttons */}
       <section className="py-20 bg-cream-dark">
         <div className="container mx-auto px-4">
           <motion.div 
@@ -239,8 +252,8 @@ const Home = () => {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
           >
             {bestsellers.map((product) => (
-              <motion.div key={product._id || product.id} variants={itemVariants}>
-                <Link to={`/product/${product._id || product.id}`} className="group">
+              <motion.div key={product._id || product.id} variants={itemVariants} className="group">
+                <Link to={`/product/${product._id || product.id}`}>
                   <div className="relative overflow-hidden rounded-lg mb-4 bg-gray-100">
                     <img 
                       src={product.image} 
@@ -252,11 +265,8 @@ const Home = () => {
                         {product.badge}
                       </span>
                     )}
-                    <button className="absolute bottom-3 right-3 p-2 rounded-full bg-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
-                      <FiHeart className="w-4 h-4 text-gray-600" />
-                    </button>
                   </div>
-                  <h3 className="text-sm font-medium text-charcoal mb-1">{product.name}</h3>
+                  <h3 className="text-sm font-medium text-charcoal mb-1 group-hover:text-warm transition">{product.name}</h3>
                   <div className="flex items-center gap-2 mb-1">
                     <div className="flex gap-0.5">
                       {[...Array(5)].map((_, i) => (
@@ -265,13 +275,22 @@ const Home = () => {
                     </div>
                     <span className="text-xs text-gray-500">{product.rating}</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 mb-3">
                     <p className="text-charcoal font-medium">${product.price}</p>
                     {product.originalPrice && (
                       <p className="text-gray-400 text-sm line-through">${product.originalPrice}</p>
                     )}
                   </div>
                 </Link>
+                {/* Add to Cart Button - Only for normal users (not admin) */}
+                {!isAdmin && (
+                  <button
+                    onClick={(e) => handleAddToCart(product, e)}
+                    className="w-full bg-charcoal text-white py-2 rounded-full text-xs font-medium hover:bg-charcoal-light transition flex items-center justify-center gap-2"
+                  >
+                    <FiPlus className="w-3 h-3" /> Add to Cart
+                  </button>
+                )}
               </motion.div>
             ))}
           </motion.div>

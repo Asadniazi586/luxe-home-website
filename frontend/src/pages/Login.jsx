@@ -15,13 +15,11 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  // Don't clear admin tokens - just check if user is logged in
   useEffect(() => {
-    // Only check user role, don't clear admin storage
-    if (user && user.role === 'admin') {
-      navigate('/admin/login')
-    } else if (user) {
+    if (user && user.role === 'user') {
       navigate('/dashboard')
+    } else if (user && user.role === 'admin') {
+      navigate('/shop')
     }
   }, [user, navigate])
 
@@ -32,13 +30,6 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
-    // Check if trying to login with admin email format
-    if (formData.email.toLowerCase().includes('admin')) {
-      setError('Admin users must login through the Admin Portal')
-      return
-    }
-    
     setLoading(true)
     const result = await login(formData.email, formData.password)
     if (!result.success) {

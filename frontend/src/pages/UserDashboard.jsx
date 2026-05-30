@@ -1,4 +1,4 @@
-// UserDashboard.jsx - Updated with order number display
+// UserDashboard.jsx - Updated with order number display and admin redirect
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -35,6 +35,13 @@ const UserDashboard = () => {
       country: user?.address?.country || "",
     },
   });
+
+  // Redirect admin to shop
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      navigate('/shop');
+    }
+  }, [user, navigate]);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -215,9 +222,9 @@ const UserDashboard = () => {
   };
 
   // Helper function to get display order ID
-const getDisplayOrderId = (order) => {
-  return order._id.slice(-6);
-};
+  const getDisplayOrderId = (order) => {
+    return order._id.slice(-6);
+  };
 
   if (!user) {
     return null;

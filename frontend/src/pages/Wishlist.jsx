@@ -1,14 +1,24 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FiHeart, FiTrash2, FiShoppingCart } from 'react-icons/fi'
 import { useWishlist } from '../contexts/WishlistContext'
 import { useCart } from '../contexts/CartContext'
+import { useAuth } from '../contexts/AuthContext'
 import toast from 'react-hot-toast'
 
 const Wishlist = () => {
+  const navigate = useNavigate()
+  const { user } = useAuth()
   const { wishlistItems, removeFromWishlist } = useWishlist()
   const { addToCart } = useCart()
+
+  // Redirect admin to shop
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      navigate('/shop')
+    }
+  }, [user, navigate])
 
   const handleAddToCart = (product) => {
     addToCart(product)

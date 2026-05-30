@@ -12,6 +12,8 @@ import {
   FiCheckCircle,
   FiX,
   FiTrash2,
+  FiHome,
+  FiShoppingBag,
 } from "react-icons/fi";
 
 import { useAuth } from "../../contexts/AuthContext";
@@ -126,7 +128,6 @@ const AdminNavbar = () => {
 
   const handleClearAll = async () => {
     try {
-      // Delete all notifications
       for (const notif of notifications) {
         await notificationService.deleteNotification(notif._id);
       }
@@ -191,10 +192,18 @@ const AdminNavbar = () => {
     navigate("/admin/login");
   };
 
+  const goToShop = () => {
+    navigate("/shop");
+  };
+
+  const goToHome = () => {
+    navigate("/");
+  };
+
   return (
     <nav className="bg-gray-900 shadow-sm px-6 py-4 flex justify-between items-center sticky top-0 z-[100] border-b border-gray-700 overflow-visible">
       <div className="flex items-center gap-3">
-        {/* Profile Section */}
+        {/* Profile Section - UNCHANGED */}
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setShowDropdown(!showDropdown)}
@@ -220,7 +229,7 @@ const AdminNavbar = () => {
             </div>
           </button>
 
-          {/* Profile Dropdown - Adjusted position */}
+          {/* Profile Dropdown - UNCHANGED */}
           {showDropdown && (
             <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-xl py-2 z-[999] border border-gray-200">
               <Link
@@ -253,107 +262,127 @@ const AdminNavbar = () => {
         </div>
       </div>
 
-      {/* Notification Bell */}
-      <div className="flex items-center gap-4 relative" ref={notificationRef}>
-        <button
-          onClick={() => setShowNotifications(!showNotifications)}
-          className="p-2 rounded-lg hover:bg-gray-800 transition relative"
-        >
-          <FiBell size={20} className="text-white" />
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-              {unreadCount > 9 ? "9+" : unreadCount}
-            </span>
-          )}
-        </button>
+      {/* Right side - Home, Shop buttons and Notification Bell (MOVED HERE) */}
+      <div className="flex items-center gap-4">
+        {/* View Site Buttons - Home and Shop */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={goToHome}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm text-white hover:bg-gray-800 rounded-lg transition"
+            title="Go to Homepage"
+          >
+            <FiHome size={16} className="text-white" />
+            <span className="text-white">Home</span>
+          </button>
+          <button
+            onClick={goToShop}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm text-white hover:bg-gray-800 rounded-lg transition"
+            title="Go to Shop"
+          >
+            <FiShoppingBag size={16} className="text-white" />
+            <span className="text-white">Shop</span>
+          </button>
+        </div>
 
-        {/* Notification Dropdown - Redesigned with smaller size */}
-        {showNotifications && (
-          <div className="absolute top-full right-0 mt-3 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-[9999] overflow-hidden">
-            {/* Header */}
-            <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="font-semibold text-gray-800 text-sm">Notifications</h3>
-              <div className="flex gap-2">
-                {unreadCount > 0 && (
-                  <button
-                    onClick={handleMarkAllAsRead}
-                    className="text-xs text-warm hover:underline"
-                  >
-                    Mark all read
-                  </button>
-                )}
-                {notifications.length > 0 && (
-                  <button
-                    onClick={handleClearAll}
-                    className="text-xs text-red-500 hover:underline"
-                  >
-                    Clear all
-                  </button>
-                )}
-              </div>
-            </div>
+        {/* Notification Bell - UNCHANGED */}
+        <div className="relative" ref={notificationRef}>
+          <button
+            onClick={() => setShowNotifications(!showNotifications)}
+            className="p-2 rounded-lg hover:bg-gray-800 transition relative"
+          >
+            <FiBell size={20} className="text-white" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </button>
 
-            {/* Notifications List */}
-            <div className="max-h-80 overflow-y-auto">
-              {loading ? (
-                <div className="p-6 text-center text-gray-400 text-sm">Loading...</div>
-              ) : notifications.length === 0 ? (
-                <div className="p-6 text-center">
-                  <FiBell className="w-8 h-8 mx-auto text-gray-300 mb-2" />
-                  <p className="text-gray-400 text-sm">No notifications yet</p>
+          {/* Notification Dropdown - UNCHANGED */}
+          {showNotifications && (
+            <div className="absolute top-full right-0 mt-3 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-[9999] overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 className="font-semibold text-gray-800 text-sm">Notifications</h3>
+                <div className="flex gap-2">
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={handleMarkAllAsRead}
+                      className="text-xs text-warm hover:underline"
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                  {notifications.length > 0 && (
+                    <button
+                      onClick={handleClearAll}
+                      className="text-xs text-red-500 hover:underline"
+                    >
+                      Clear all
+                    </button>
+                  )}
                 </div>
-              ) : (
-                notifications.map((notif) => (
-                  <div
-                    key={notif._id}
-                    className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition ${
-                      !notif.isRead ? "bg-blue-50/30" : ""
-                    }`}
-                    onClick={() => !notif.isRead && handleMarkAsRead(notif._id)}
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <div className="flex-shrink-0 mt-0.5">
-                        {getNotificationIcon(notif.type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start gap-2">
-                          <p className="text-sm font-medium text-gray-800 truncate">
-                            {notif.title}
-                          </p>
-                          <button
-                            onClick={(e) => handleDeleteNotification(notif._id, e)}
-                            className="text-gray-300 hover:text-red-500 transition flex-shrink-0"
-                          >
-                            <FiX size={12} />
-                          </button>
+              </div>
+
+              <div className="max-h-80 overflow-y-auto">
+                {loading ? (
+                  <div className="p-6 text-center text-gray-400 text-sm">Loading...</div>
+                ) : notifications.length === 0 ? (
+                  <div className="p-6 text-center">
+                    <FiBell className="w-8 h-8 mx-auto text-gray-300 mb-2" />
+                    <p className="text-gray-400 text-sm">No notifications yet</p>
+                  </div>
+                ) : (
+                  notifications.map((notif) => (
+                    <div
+                      key={notif._id}
+                      className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition ${
+                        !notif.isRead ? "bg-blue-50/30" : ""
+                      }`}
+                      onClick={() => !notif.isRead && handleMarkAsRead(notif._id)}
+                    >
+                      <div className="flex items-start gap-2.5">
+                        <div className="flex-shrink-0 mt-0.5">
+                          {getNotificationIcon(notif.type)}
                         </div>
-                        <p className="text-xs text-gray-600 mt-1 line-clamp-2">
-                          {notif.message}
-                        </p>
-                        <div className="flex items-center justify-between mt-1.5">
-                          <p className="text-xs text-gray-400">{getTimeAgo(notif.createdAt)}</p>
-                          {!notif.isRead && (
-                            <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                          )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start gap-2">
+                            <p className="text-sm font-medium text-gray-800 truncate">
+                              {notif.title}
+                            </p>
+                            <button
+                              onClick={(e) => handleDeleteNotification(notif._id, e)}
+                              className="text-gray-300 hover:text-red-500 transition flex-shrink-0"
+                            >
+                              <FiX size={12} />
+                            </button>
+                          </div>
+                          <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                            {notif.message}
+                          </p>
+                          <div className="flex items-center justify-between mt-1.5">
+                            <p className="text-xs text-gray-400">{getTimeAgo(notif.createdAt)}</p>
+                            {!notif.isRead && (
+                              <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))
-              )}
-            </div>
+                  ))
+                )}
+              </div>
 
-            {/* Footer */}
-            <div className="px-4 py-2 border-t border-gray-100 text-center bg-gray-50">
-              <button
-                onClick={() => setShowNotifications(false)}
-                className="text-xs text-gray-500 hover:text-gray-700"
-              >
-                Close
-              </button>
+              <div className="px-4 py-2 border-t border-gray-100 text-center bg-gray-50">
+                <button
+                  onClick={() => setShowNotifications(false)}
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                >
+                  Close
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </nav>
   );

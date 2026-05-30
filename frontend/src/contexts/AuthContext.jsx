@@ -11,27 +11,60 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check which storage to use based on current path
-    const isAdminPath = window.location.pathname.startsWith('/admin')
-    const storageKey = isAdminPath ? 'admin_token' : 'user_token'
-    const userStorageKey = isAdminPath ? 'admin_user' : 'user_user'
-    
-    const token = localStorage.getItem(storageKey)
-    const storedUser = localStorage.getItem(userStorageKey)
-    
-    if (token && storedUser) {
-      setUser(JSON.parse(storedUser))
+    const checkAuth = () => {
+      // STEP 1: ALWAYS check for admin token FIRST (regardless of path)
+      const adminToken = localStorage.getItem('admin_token')
+      const adminUser = localStorage.getItem('admin_user')
+      
+      if (adminToken && adminUser) {
+        try {
+          const parsedUser = JSON.parse(adminUser)
+          if (parsedUser.role === 'admin') {
+            console.log('✅ Admin user detected, setting as current user')
+            setUser(parsedUser)
+            setLoading(false)
+            return
+          }
+        } catch (e) {}
+      }
+      
+      // STEP 2: If no admin token, check for normal user
+      const isAdminPath = window.location.pathname.startsWith('/admin')
+      
+      if (!isAdminPath) {
+        const userData = sessionStorage.getItem('user_user')
+        if (userData) {
+          try {
+            const parsedUser = JSON.parse(userData)
+            console.log('✅ Normal user detected')
+            setUser(parsedUser)
+            setLoading(false)
+            return
+          } catch (e) {}
+        }
+      }
+      
+      console.log('❌ No user found')
+      setLoading(false)
     }
-    setLoading(false)
+    
+    checkAuth()
   }, [])
 
   const login = async (email, password) => {
     try {
       const data = await authService.login(email, password)
-      localStorage.setItem('user_token', data.token)
-      localStorage.setItem('user_user', JSON.stringify(data))
-      setUser(data)
-      toast.success('Login successful!')
+      
+      if (data.role === 'admin') {
+        localStorage.setItem('admin_token', data.token)
+        localStorage.setItem('admin_user', JSON.stringify(data))
+        setUser(data)
+        toast.success('Admin login successful!')
+      } else {
+        sessionStorage.setItem('user_user', JSON.stringify(data))
+        setUser(data)
+        toast.success('Login successful!')
+      }
       return { success: true }
     } catch (error) {
       const message = error.response?.data?.message || 'Login failed'
@@ -58,8 +91,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (name, email, password) => {
     try {
       const data = await authService.register({ name, email, password })
-      localStorage.setItem('user_token', data.token)
-      localStorage.setItem('user_user', JSON.stringify(data))
+      sessionStorage.setItem('user_user', JSON.stringify(data))
       setUser(data)
       toast.success('Registration successful!')
       return { success: true }
@@ -71,14 +103,9 @@ export const AuthProvider = ({ children }) => {
   }
 
   const logout = () => {
-    // Only clear the storage based on current user role
-    if (user?.role === 'admin') {
-      localStorage.removeItem('admin_token')
-      localStorage.removeItem('admin_user')
-    } else {
-      localStorage.removeItem('user_token')
-      localStorage.removeItem('user_user')
-    }
+    localStorage.removeItem('admin_token')
+    localStorage.removeItem('admin_user')
+    sessionStorage.removeItem('user_user')
     setUser(null)
     toast.success('Logged out successfully')
   }

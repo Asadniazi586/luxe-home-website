@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { FiStar, FiMinus, FiPlus, FiHeart, FiShare2, FiTruck, FiRefreshCw, FiShield, FiChevronRight, FiAlertCircle, FiChevronLeft, FiZoomIn } from 'react-icons/fi'
 import { useCart } from '../contexts/CartContext'
 import { useWishlist } from '../contexts/WishlistContext'
+import { useAuth } from '../contexts/AuthContext'
 import { productService } from '../services/productService'
 import { products } from '../data/products'
 import toast from 'react-hot-toast'
@@ -25,8 +26,9 @@ const ProductDetail = () => {
   
   const { addToCart } = useCart()
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'admin'
 
-  // Get all product images
   const getAllImages = () => {
     if (!product) return []
     const images = []
@@ -63,7 +65,6 @@ const ProductDetail = () => {
     .filter(p => p.category === product?.category && p.id !== product?.id)
     .slice(0, 4)
 
-  // Touch handlers for swipe (mobile only)
   const handleTouchStart = (e) => {
     setTouchStart(e.targetTouches[0].clientX)
   }
@@ -106,26 +107,24 @@ const ProductDetail = () => {
 
   if (!product) return null
 
- const handleAddToCart = () => {
-  if (product.sizes && product.sizes.length > 0 && !selectedSize) {
-    setSizeError(true)
-    toast.error('Please select a size', { duration: 2000 })
-    return
+  const handleAddToCart = () => {
+    if (product.sizes && product.sizes.length > 0 && !selectedSize) {
+      setSizeError(true)
+      toast.error('Please select a size', { duration: 2000 })
+      return
+    }
+    
+    if (product.colors && product.colors.length > 0 && !selectedColor) {
+      setColorError(true)
+      toast.error('Please select a color', { duration: 2000 })
+      return
+    }
+    
+    setSizeError(false)
+    setColorError(false)
+    addToCart(product, quantity, selectedSize, selectedColor)
+    toast.success(`Added ${quantity} ${product.name} to cart!`)
   }
-  
-  if (product.colors && product.colors.length > 0 && !selectedColor) {
-    setColorError(true)
-    toast.error('Please select a color', { duration: 2000 })
-    return
-  }
-  
-  setSizeError(false)
-  setColorError(false)
-  
-  // IMPORTANT: Pass selectedSize and selectedColor
-  addToCart(product, quantity, selectedSize, selectedColor)
-  toast.success(`Added ${quantity} ${product.name} to cart!`)
-}
 
   const handleWishlist = () => {
     if (isInWishlist(product.id)) {
@@ -145,7 +144,6 @@ const ProductDetail = () => {
 
   const totalPrice = product.price * quantity
 
-  // Get first 3 thumbnails for desktop (or all if less than 3)
   const desktopThumbnails = allImages.slice(0, 3)
 
   return (
@@ -154,9 +152,7 @@ const ProductDetail = () => {
 
         <div className="grid md:grid-cols-2 gap-6 lg:gap-10 mb-16">
           
-          {/* LEFT COLUMN - Gallery Section */}
           <div>
-            {/* Desktop Layout - Main Image + 3 Subpics */}
             <div className="hidden md:block">
               <div className="relative overflow-hidden rounded-xl bg-gray-100 mb-3">
                 <img 
@@ -165,7 +161,6 @@ const ProductDetail = () => {
                   className="w-full aspect-square object-cover cursor-zoom-in"
                   onClick={() => setIsZoomed(true)}
                 />
-                {/* Zoom Button Desktop */}
                 <button
                   onClick={() => setIsZoomed(true)}
                   className="absolute bottom-4 right-4 w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-all duration-200"
@@ -188,7 +183,6 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            {/* Mobile Layout - Swipeable Gallery with Arrows */}
             <div className="md:hidden relative">
               <div 
                 className="relative overflow-hidden rounded-xl bg-gray-100"
@@ -202,7 +196,6 @@ const ProductDetail = () => {
                   className="w-full aspect-square object-cover"
                 />
                 
-                {/* Navigation Arrows for Mobile */}
                 {allImages.length > 1 && (
                   <>
                     <button
@@ -220,7 +213,6 @@ const ProductDetail = () => {
                   </>
                 )}
 
-                {/* Zoom Button Mobile */}
                 <button
                   onClick={() => setIsZoomed(true)}
                   className="absolute bottom-4 right-4 w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-all duration-200"
@@ -228,7 +220,6 @@ const ProductDetail = () => {
                   <FiZoomIn size={16} className="text-white" />
                 </button>
 
-                {/* Image Counter Mobile */}
                 {allImages.length > 1 && (
                   <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full font-medium">
                     {activeImage + 1} / {allImages.length}
@@ -236,7 +227,6 @@ const ProductDetail = () => {
                 )}
               </div>
 
-              {/* Thumbnail Dots for Mobile */}
               {allImages.length > 1 && (
                 <div className="flex justify-center gap-2 mt-3">
                   {allImages.map((_, idx) => (
@@ -253,7 +243,6 @@ const ProductDetail = () => {
             </div>
           </div>
 
-          {/* RIGHT COLUMN - Product Info */}
           <div>
             {product.badge && (
               <span className="inline-block px-2.5 py-1 rounded-full bg-warm/20 text-warm text-xs font-medium mb-3">
@@ -285,7 +274,6 @@ const ProductDetail = () => {
 
             <p className="text-gray-500 text-sm leading-relaxed mb-5">{product.description}</p>
 
-            {/* Size Selector */}
             {product.sizes && product.sizes.length > 0 && (
               <div className="mb-5">
                 <div className="flex justify-between items-center mb-2">
@@ -317,7 +305,6 @@ const ProductDetail = () => {
               </div>
             )}
 
-            {/* Color Selector */}
             {product.colors && product.colors.length > 0 && (
               <div className="mb-5">
                 <div className="flex justify-between items-center mb-2">
@@ -349,7 +336,6 @@ const ProductDetail = () => {
               </div>
             )}
 
-            {/* Quantity */}
             <div className="mb-5">
               <h3 className="font-medium text-charcoal text-sm mb-2">Quantity</h3>
               <div className="flex items-center gap-3">
@@ -369,26 +355,26 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3 mb-6">
-              <button 
-                onClick={handleAddToCart}
-                className="flex-1 bg-charcoal text-white py-2.5 rounded-full text-sm font-medium hover:bg-charcoal-light transition"
-              >
-                Add to Cart
-              </button>
-              <button 
-                onClick={handleWishlist}
-                className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:border-charcoal transition"
-              >
-                <FiHeart className={`w-4 h-4 ${isInWishlist(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
-              </button>
-              <button className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:border-charcoal transition">
-                <FiShare2 className="w-4 h-4" />
-              </button>
-            </div>
+            {!isAdmin && (
+              <div className="flex gap-3 mb-6">
+                <button 
+                  onClick={handleAddToCart}
+                  className="flex-1 bg-charcoal text-white py-2.5 rounded-full text-sm font-medium hover:bg-charcoal-light transition"
+                >
+                  Add to Cart
+                </button>
+                <button 
+                  onClick={handleWishlist}
+                  className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:border-charcoal transition"
+                >
+                  <FiHeart className={`w-4 h-4 ${isInWishlist(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                </button>
+                <button className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:border-charcoal transition">
+                  <FiShare2 className="w-4 h-4" />
+                </button>
+              </div>
+            )}
 
-            {/* Features */}
             <div className="space-y-2 pt-4 border-t border-gray-200">
               {features.map((feature, idx) => (
                 <div key={idx} className="flex items-center gap-2 text-xs text-gray-500">
@@ -400,7 +386,6 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div className="mt-16 pt-8 border-t border-gray-200">
             <div className="flex justify-between items-center mb-6">
@@ -452,7 +437,6 @@ const ProductDetail = () => {
         )}
       </div>
 
-      {/* Image Zoom Modal - Same for both desktop and mobile */}
       <AnimatePresence>
         {isZoomed && (
           <motion.div

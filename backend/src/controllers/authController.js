@@ -31,6 +31,7 @@ export const registerUser = async (req, res) => {
     if (user) {
       await createUserRegistrationNotification(user);
       
+      // Regular users get token in response body (will be stored in sessionStorage)
       res.status(201).json({
         _id: user.id,
         name: user.name,
@@ -63,11 +64,7 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // IMPORTANT: Block admin users from regular login
-    if (user.role === 'admin') {
-      return res.status(403).json({ message: 'Admin cannot login here. Please use admin portal.' });
-    }
-
+    // Regular users get token in response body (will be stored in sessionStorage)
     res.json({
       _id: user.id,
       name: user.name,
@@ -80,7 +77,7 @@ export const loginUser = async (req, res) => {
   }
 };
 
-// @desc    Admin Login (Only for admin)
+// @desc    Admin Login - Returns token
 // @route   POST /api/auth/admin/login
 // @access  Public
 export const adminLogin = async (req, res) => {
@@ -91,7 +88,7 @@ export const adminLogin = async (req, res) => {
     const adminPassword = process.env.ADMIN_PASSWORD;
     
     if (!adminEmail || !adminPassword) {
-      return res.status(500).json({ message: 'Admin credentials not configured in .env file' });
+      return res.status(500).json({ message: 'Admin credentials not configured' });
     }
     
     if (email === adminEmail && password === adminPassword) {
@@ -106,12 +103,14 @@ export const adminLogin = async (req, res) => {
         });
       }
       
+      const token = generateToken(adminUser.id);
+      
       res.json({
         _id: adminUser.id,
         name: adminUser.name,
         email: adminUser.email,
         role: 'admin',
-        token: generateToken(adminUser.id),
+        token: token,
       });
     } else {
       return res.status(401).json({ message: 'Invalid admin credentials' });
@@ -120,6 +119,21 @@ export const adminLogin = async (req, res) => {
     console.error('Admin login error:', error);
     res.status(500).json({ message: error.message });
   }
+};
+
+// @desc    Admin Logout
+// @route   POST /api/auth/admin/logout
+// @access  Public
+export const adminLogout = async (req, res) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  res.clearCookie('admin_token', {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+    path: '/',
+  });
+  res.json({ message: 'Logged out successfully' });
 };
 
 // @desc    Get user profile

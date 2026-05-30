@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import connectDB from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
@@ -10,10 +11,8 @@ import productRoutes from './routes/productRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
-// Add this import
 import notificationRoutes from './routes/notificationRoutes.js';
 
-// Add this route
 dotenv.config();
 
 // Connect to database
@@ -25,14 +24,21 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS middleware
-app.use(cors());
+// Cookie parser middleware
+app.use(cookieParser());
+
+// CORS middleware - Allow credentials (cookies)
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://luxe-home-website-frontend.onrender.com'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 app.get('/', (req, res) => {
   res.json({ message: 'LUXE HOME API is running! 🚀' });
 });
 
-// Health check endpoint - useful for monitoring
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'OK', 
@@ -49,7 +55,6 @@ app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/notifications', notificationRoutes);
 
-// Test route
 app.get('/api', (req, res) => {
   res.json({ message: 'LUXE HOME API is running...' });
 });

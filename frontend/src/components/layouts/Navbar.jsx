@@ -11,11 +11,13 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const [profileImage, setProfileImage] = useState(null)
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false) // Add state for mobile dropdown
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const { cartItems } = useCart()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+
+  const isAdmin = user?.role === 'admin'
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,7 +27,6 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (isDropdownOpen && !event.target.closest('.user-dropdown')) {
@@ -36,7 +37,6 @@ const Navbar = () => {
     return () => document.removeEventListener('click', handleClickOutside)
   }, [isDropdownOpen])
 
-  // Load profile image from localStorage
   useEffect(() => {
     if (user) {
       const userId = user._id || user.id
@@ -47,7 +47,6 @@ const Navbar = () => {
     }
   }, [user])
 
-  // Listen for profile image updates from dashboard
   useEffect(() => {
     const handleProfileUpdate = (event) => {
       if (event.detail && event.detail.userId === (user?._id || user?.id)) {
@@ -108,12 +107,10 @@ const Navbar = () => {
     <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-md' : 'bg-white shadow-sm'}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
-          {/* Logo */}
           <Link to="/" className="text-xl md:text-2xl tracking-wide font-light text-gray-800 hover:text-warm transition">
             LUXE HOME
           </Link>
 
-          {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-8">
             {navItems.map((item) => (
               <Link
@@ -135,28 +132,38 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Icons */}
           <div className="flex items-center gap-4">
             <button onClick={() => setShowSearch(!showSearch)} className="hidden md:block">
               <FiSearch className="w-5 h-5 text-gray-600 hover:text-gray-800 transition-colors" />
             </button>
             
-            <Link to="/wishlist">
-              <FiHeart className="w-5 h-5 text-gray-600 hover:text-gray-800 transition-colors" />
-            </Link>
+            {!isAdmin && (
+              <Link to="/wishlist">
+                <FiHeart className="w-5 h-5 text-gray-600 hover:text-gray-800 transition-colors" />
+              </Link>
+            )}
             
-            <Link to="/cart" className="relative">
-              <FiShoppingCart className="w-5 h-5 text-gray-600 hover:text-gray-800 transition-colors" />
-              {cartCount > 0 && (
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-2 -right-2 w-4 h-4 bg-warm text-white text-xs rounded-full flex items-center justify-center"
-                >
-                  {cartCount}
-                </motion.span>
-              )}
-            </Link>
+            {!isAdmin && (
+              <Link to="/cart" className="relative">
+                <FiShoppingCart className="w-5 h-5 text-gray-600 hover:text-gray-800 transition-colors" />
+                {cartCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-2 -right-2 w-4 h-4 bg-warm text-white text-xs rounded-full flex items-center justify-center"
+                  >
+                    {cartCount}
+                  </motion.span>
+                )}
+              </Link>
+            )}
+            
+            {/* Admin Panel Link for Admin Users */}
+            {isAdmin && (
+              <Link to="/admin" className="hidden md:block bg-warm text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-warm/80 transition">
+                Admin Panel
+              </Link>
+            )}
             
             {user ? (
               <div className="relative user-dropdown">
@@ -179,7 +186,6 @@ const Navbar = () => {
                   <FiChevronDown className={`w-3 h-3 text-gray-600 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
                 
-                {/* Dropdown Menu - Works on both desktop and mobile */}
                 <AnimatePresence>
                   {isDropdownOpen && (
                     <motion.div
@@ -189,30 +195,10 @@ const Navbar = () => {
                       transition={{ duration: 0.2 }}
                       className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg overflow-hidden z-50 border border-gray-100"
                     >
-                      <Link 
-                        to="/dashboard" 
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
-                      >
-                        Dashboard
-                      </Link>
-                      <Link 
-                        to="/wishlist" 
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
-                      >
-                        Wishlist
-                      </Link>
-                      <Link 
-                        to="/dashboard?tab=orders" 
-                        onClick={() => setIsDropdownOpen(false)}
-                        className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
-                      >
-                        Orders
-                      </Link>
+                      {/* Admin Dashboard link removed - only Logout remains for admin */}
                       <button 
                         onClick={handleLogout} 
-                        className="block w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-gray-50 transition border-t border-gray-100"
+                        className="block w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-gray-50 transition"
                       >
                         Logout
                       </button>
@@ -232,7 +218,6 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Search Bar */}
         <AnimatePresence>
           {showSearch && (
             <motion.div
@@ -258,7 +243,6 @@ const Navbar = () => {
         </AnimatePresence>
       </div>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -280,6 +264,15 @@ const Navbar = () => {
                   {item.name}
                 </Link>
               ))}
+              {isAdmin && (
+                <Link 
+                  to="/admin" 
+                  onClick={() => setIsOpen(false)}
+                  className="block py-2 text-warm font-medium"
+                >
+                  Admin Panel
+                </Link>
+              )}
               <div className="pt-4 border-t border-gray-100">
                 <form onSubmit={handleSearch} className="relative">
                   <input

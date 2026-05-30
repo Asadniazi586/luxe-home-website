@@ -1,11 +1,11 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { FiStar, FiHeart } from 'react-icons/fi'
+import { FiStar, FiHeart, FiEdit2 } from 'react-icons/fi'
 import { useCart } from '../../contexts/CartContext'
 import { useWishlist } from '../../contexts/WishlistContext'
 
-const ProductCard = ({ product, viewMode = 'grid' }) => {
+const ProductCard = ({ product, viewMode = 'grid', isAdmin = false }) => {
   const { addToCart } = useCart()
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
 
@@ -53,12 +53,14 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
           </div>
           <div className="flex items-center justify-between mt-3">
             <span className="text-lg font-medium text-gray-800">${product.price}</span>
-            <button 
-              onClick={handleAddToCart}
-              className="bg-gray-800 text-white px-4 py-1.5 rounded-full text-xs font-medium hover:bg-gray-700 transition"
-            >
-              Add to Cart
-            </button>
+            {!isAdmin && (
+              <button 
+                onClick={handleAddToCart}
+                className="bg-gray-800 text-white px-4 py-1.5 rounded-full text-xs font-medium hover:bg-gray-700 transition"
+              >
+                Add to Cart
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -80,9 +82,22 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
               {product.badge}
             </span>
           )}
+          
+          {/* Edit Button for Admin - Navigates to the edit page */}
+          {isAdmin && (
+            <Link 
+              to={`/admin/add-product`}
+              state={{ product: product, isEditing: true }}
+              onClick={(e) => e.stopPropagation()}
+              className="absolute top-3 right-3 bg-blue-500 text-white p-1.5 rounded-full text-xs hover:bg-blue-600 transition shadow-md z-10"
+            >
+              <FiEdit2 className="w-3 h-3" />
+            </Link>
+          )}
+          
           <button 
             onClick={handleWishlist}
-            className="absolute top-3 right-3 p-2 rounded-full bg-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            className="absolute bottom-3 right-3 p-2 rounded-full bg-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200"
             aria-label="Add to wishlist"
           >
             <FiHeart className={`w-4 h-4 ${isInWishlist(productId) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
@@ -99,12 +114,14 @@ const ProductCard = ({ product, viewMode = 'grid' }) => {
         </div>
         <p className="text-gray-800 font-medium">${product.price}</p>
       </Link>
-      <button
-        onClick={handleAddToCart}
-        className="w-full mt-3 bg-gray-800 text-white py-2 rounded-full text-xs font-medium hover:bg-gray-700 transition"
-      >
-        Add to Cart
-      </button>
+      {!isAdmin && (
+        <button
+          onClick={handleAddToCart}
+          className="w-full mt-3 bg-gray-800 text-white py-2 rounded-full text-xs font-medium hover:bg-gray-700 transition"
+        >
+          Add to Cart
+        </button>
+      )}
     </div>
   )
 }

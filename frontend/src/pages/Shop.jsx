@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FiGrid, FiList, FiFilter, FiX, FiStar, FiPackage, FiTag, FiRefreshCw } from 'react-icons/fi'
+import { FiGrid, FiList, FiFilter, FiX, FiStar, FiPackage, FiTag, FiRefreshCw, FiPlus } from 'react-icons/fi'
 import ProductCard from '../components/ui/ProductCard'
 import { productService } from '../services/productService'
+import { useAuth } from '../contexts/AuthContext'
 
 const Shop = () => {
   const [searchParams] = useSearchParams()
+  const { user } = useAuth()
   const [filterOpen, setFilterOpen] = useState(false)
   const [viewMode, setViewMode] = useState('grid')
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all')
@@ -16,6 +18,8 @@ const Shop = () => {
   const [loading, setLoading] = useState(true)
   
   const productsSectionRef = useRef(null)
+
+  const isAdmin = user?.role === 'admin'
 
   const categories = ['all', 'bedding', 'bath', 'decor']
   const badges = [
@@ -109,6 +113,15 @@ const Shop = () => {
             </div>
             
             <div className="flex gap-3 flex-wrap">
+              {/* Add Product Button for Admin */}
+              {isAdmin && (
+                <Link to="/admin/add-product">
+                  <button className="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-green-600 transition flex items-center gap-2">
+                    <FiPlus className="w-4 h-4" /> Add Product
+                  </button>
+                </Link>
+              )}
+              
               <button 
                 onClick={() => setFilterOpen(!filterOpen)}
                 className="md:hidden flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-full text-sm bg-white"
@@ -210,7 +223,7 @@ const Shop = () => {
                 }`}
               >
                 {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} viewMode={viewMode} />
+                  <ProductCard key={product.id} product={product} viewMode={viewMode} isAdmin={isAdmin} />
                 ))}
               </motion.div>
             </AnimatePresence>

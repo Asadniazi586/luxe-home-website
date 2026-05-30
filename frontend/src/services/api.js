@@ -11,18 +11,24 @@ const api = axios.create({
   },
 });
 
-// Add token to requests - check which token to use based on path
 api.interceptors.request.use(
   (config) => {
-    // Check if it's an admin request
-    const isAdminRequest = config.url.includes('/admin') || window.location.pathname.startsWith('/admin')
+    // Check for admin token first (from localStorage)
+    const adminToken = localStorage.getItem('admin_token')
+    if (adminToken) {
+      config.headers.Authorization = `Bearer ${adminToken}`;
+      return config;
+    }
     
-    const token = isAdminRequest 
-      ? localStorage.getItem('admin_token')
-      : localStorage.getItem('user_token')
-    
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Check for user token (from sessionStorage)
+    const userData = sessionStorage.getItem('user_user')
+    if (userData) {
+      try {
+        const parsed = JSON.parse(userData)
+        if (parsed.token) {
+          config.headers.Authorization = `Bearer ${parsed.token}`;
+        }
+      } catch (e) {}
     }
     return config;
   },
