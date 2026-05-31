@@ -4,15 +4,21 @@ import User from '../models/User.js';
 export const protect = async (req, res, next) => {
   let token;
   
-  // Check for access token in cookies (HTTP-Only cookie)
+  // Check for access token in cookies
   if (req.cookies && req.cookies.accessToken) {
     try {
       token = req.cookies.accessToken;
       const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+      
       req.user = await User.findById(decoded.id).select('-password');
+      
+      if (!req.user) {
+        return res.status(401).json({ message: 'User not found' });
+      }
+      
       return next();
     } catch (error) {
-      // Token expired or invalid - don't return error yet, let refresh handle it
+      console.error('Auth error:', error.message);
       if (error.name === 'TokenExpiredError') {
         return res.status(401).json({ message: 'Token expired', expired: true });
       }
@@ -20,7 +26,7 @@ export const protect = async (req, res, next) => {
     }
   }
   
-  // Fallback: Check for Bearer token (for mobile apps or API clients)
+  // Fallback: Check for Bearer token
   if (req.headers.authorization?.startsWith('Bearer')) {
     try {
       token = req.headers.authorization.split(' ')[1];

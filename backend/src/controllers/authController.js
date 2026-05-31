@@ -5,52 +5,51 @@ import { createUserRegistrationNotification } from './notificationController.js'
 // Generate Access & Refresh Tokens
 const generateTokens = (id, role) => {
   const accessToken = jwt.sign({ id, role }, process.env.JWT_ACCESS_SECRET, {
-    expiresIn: '15m',
+    expiresIn: '7d', // Increased from 15m to 7d for production
   });
   
   const refreshToken = jwt.sign({ id, role }, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: '7d',
+    expiresIn: '30d',
   });
   
   return { accessToken, refreshToken };
 };
 
-// Set HTTP-Only Cookies
+// Set HTTP-Only Cookies - FIXED for cross-domain production
 const setTokenCookies = (res, accessToken, refreshToken) => {
   const isProduction = process.env.NODE_ENV === 'production';
   
+  // Critical fix for cross-domain cookies
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
-    secure: isProduction, // true for HTTPS
-    sameSite: 'none', // CHANGE from 'strict' to 'none' for cross-domain
-    maxAge: 15 * 60 * 1000,
+    secure: true, // MUST be true for cross-domain
+    sameSite: 'none', // MUST be 'none' for cross-domain
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/',
   });
   
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
-    secure: isProduction,
-    sameSite: 'none', // CHANGE from 'strict' to 'none'
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-    path: '/api/auth/refresh',
+    secure: true,
+    sameSite: 'none',
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    path: '/',
   });
 };
 
 const clearAuthCookies = (res) => {
-  const isProduction = process.env.NODE_ENV === 'production';
-  
   res.clearCookie('accessToken', {
     httpOnly: true,
-    secure: isProduction,
+    secure: true,
     sameSite: 'none',
     path: '/',
   });
   
   res.clearCookie('refreshToken', {
     httpOnly: true,
-    secure: isProduction,
+    secure: true,
     sameSite: 'none',
-    path: '/api/auth/refresh',
+    path: '/',
   });
 };
 
@@ -110,7 +109,6 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // ALLOW BOTH admin AND normal user through this endpoint
     const { accessToken, refreshToken } = generateTokens(user.id, user.role);
     setTokenCookies(res, accessToken, refreshToken);
     
@@ -146,20 +144,20 @@ export const refreshAccessToken = async (req, res) => {
     const newAccessToken = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_ACCESS_SECRET,
-      { expiresIn: '15m' }
+      { expiresIn: '7d' }
     );
     
-    const isProduction = process.env.NODE_ENV === 'production';
     res.cookie('accessToken', newAccessToken, {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: 'strict',
-      maxAge: 15 * 60 * 1000,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/',
     });
     
     res.json({ success: true });
   } catch (error) {
+    console.error('Refresh error:', error);
     res.status(403).json({ message: 'Invalid refresh token' });
   }
 };
@@ -244,6 +242,7 @@ export const getCurrentUser = async (req, res) => {
     
     res.json({ user });
   } catch (error) {
+    console.error('Get current user error:', error);
     res.json({ user: null });
   }
 };

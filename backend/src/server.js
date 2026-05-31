@@ -27,13 +27,20 @@ app.use(express.urlencoded({ extended: true }));
 // Cookie parser middleware
 app.use(cookieParser());
 
-// CORS middleware - Allow credentials (cookies)
+// CORS middleware - FIXED for cross-domain production
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://luxe-home-website-frontend.onrender.com'],
-  credentials: true,
+  origin: [
+    'http://localhost:5173', 
+    'http://localhost:3000', 
+    'https://luxe-home-website-frontend.onrender.com'
+  ],
+  credentials: true, // MUST be true
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Tab-Id'], // ADD 'X-Tab-Id'
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 app.get('/', (req, res) => {
   res.json({ message: 'LUXE HOME API is running! 🚀' });

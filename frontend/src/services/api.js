@@ -36,7 +36,6 @@ api.interceptors.response.use(
     // If error is 401 and not a retry
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        // Queue the request while refresh is in progress
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         }).then(() => {
@@ -51,7 +50,12 @@ api.interceptors.response.use(
       
       try {
         // Try to refresh the token
-        await axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true });
+        await axios.post(`${API_URL}/auth/refresh`, {}, { 
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
         processQueue(null);
         return api(originalRequest);
       } catch (refreshError) {
