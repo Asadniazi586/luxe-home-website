@@ -28,11 +28,17 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // CORS middleware - Allow credentials (cookies)
+// CORS middleware - Allow credentials (cookies)
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://luxe-home-website-frontend.onrender.com'],
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://luxe-home-website-frontend.onrender.com',
+    'https://luxe-home-website-backend.onrender.com'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Tab-Id'],
 }));
 
 // Remove the problematic line - DO NOT use app.options('*', cors())

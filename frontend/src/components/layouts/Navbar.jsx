@@ -133,9 +133,9 @@ const Navbar = () => {
   }
 
   const handleLogout = () => {
-    logout()
     setIsDropdownOpen(false)
-    navigate('/login')
+    logout()
+    // navigate('/login')
   }
 
   const handleNavigation = (path) => {
