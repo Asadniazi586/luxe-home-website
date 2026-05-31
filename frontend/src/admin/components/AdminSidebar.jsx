@@ -73,7 +73,7 @@ const AdminSidebar = ({ isOpen, setIsOpen }) => {
                 }`
               }
             >
-              <item.icon size={20} className="flex-shrink-0 text-white" />
+              <item.icon size={20} className="shrink-0 text-white" />
               {isOpen && <span className="text-sm font-medium text-white">{item.name}</span>}
             </NavLink>
           ))}
@@ -86,7 +86,7 @@ const AdminSidebar = ({ isOpen, setIsOpen }) => {
           onClick={handleLogout}
           className="flex items-center gap-3 px-5 py-3 w-full rounded-lg text-white hover:bg-red-600 hover:text-white transition-all duration-200"
         >
-          <FiLogOut size={20} className="flex-shrink-0 text-white" />
+          <FiLogOut size={20} className="shrink-0 text-white" />
           {isOpen && <span className="text-sm font-medium text-white">Logout</span>}
         </button>
       </div>

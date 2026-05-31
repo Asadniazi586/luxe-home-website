@@ -133,7 +133,7 @@ const Home = () => {
             className="w-full h-full object-cover brightness-[0.55]"
             style={{ objectPosition: 'center 30%' }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/30" />
+          <div className="absolute inset-0 bg-linear-to-b from-black/30 to-black/30" />
         </div>
         
         <div className="container mx-auto px-4 relative z-10 text-center">
@@ -227,7 +227,7 @@ const Home = () => {
                       alt={category.name}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/30 to-transparent" />
                   </div>
                   <h3 className="text-sm font-medium text-charcoal text-center">{category.name}</h3>
                 </Link>

@@ -121,7 +121,7 @@ const AdminNavbar = () => {
   }, [navigate]);
 
   return (
-    <nav className="bg-gray-900 shadow-sm px-6 py-3.5 flex justify-between items-center sticky top-0 z-[100] border-b border-gray-700 overflow-visible">
+    <nav className="bg-gray-900 shadow-sm px-6 py-3.5 flex justify-between items-center sticky top-0 z-100 border-b border-gray-700 overflow-visible">
       <div className="flex items-center gap-3">
         <div className="relative" ref={dropdownRef}>
           <button
@@ -152,7 +152,7 @@ const AdminNavbar = () => {
           </button>
 
           {showDropdown && (
-            <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-xl py-2 z-[999] border border-gray-200">
+            <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-xl py-2 z-999 border border-gray-200">
               <Link
                 to="/admin/profile"
                 onClick={() => setShowDropdown(false)}
@@ -215,7 +215,7 @@ const AdminNavbar = () => {
           </button>
 
           {showNotifications && (
-            <div className="absolute top-full right-0 mt-3 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-[9999] overflow-hidden">
+            <div className="absolute top-full right-0 mt-3 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-9999 overflow-hidden">
               <div className="px-4 py-2 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <h3 className="font-semibold text-gray-800 text-sm">Notifications</h3>
                 <div className="flex gap-2">
@@ -254,7 +254,7 @@ const AdminNavbar = () => {
                       onClick={() => !notif.isRead && handleMarkAsRead(notif._id)}
                     >
                       <div className="flex items-start gap-2.5">
-                        <div className="flex-shrink-0 mt-0.5">
+                        <div className="shrink-0 mt-0.5">
                           {getNotificationIcon(notif.type)}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -264,7 +264,7 @@ const AdminNavbar = () => {
                             </p>
                             <button
                               onClick={(e) => handleDeleteNotification(notif._id, e)}
-                              className="text-gray-300 hover:text-red-500 transition flex-shrink-0"
+                              className="text-gray-300 hover:text-red-500 transition shrink-0"
                             >
                               <FiX size={12} />
                             </button>
