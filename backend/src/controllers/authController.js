@@ -21,8 +21,8 @@ const setTokenCookies = (res, accessToken, refreshToken) => {
   
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
-    secure: isProduction,
-    sameSite: 'strict',
+    secure: isProduction, // true for HTTPS
+    sameSite: 'none', // CHANGE from 'strict' to 'none' for cross-domain
     maxAge: 15 * 60 * 1000,
     path: '/',
   });
@@ -30,7 +30,7 @@ const setTokenCookies = (res, accessToken, refreshToken) => {
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'strict',
+    sameSite: 'none', // CHANGE from 'strict' to 'none'
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: '/api/auth/refresh',
   });
@@ -42,14 +42,14 @@ const clearAuthCookies = (res) => {
   res.clearCookie('accessToken', {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'strict',
+    sameSite: 'none',
     path: '/',
   });
   
   res.clearCookie('refreshToken', {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'strict',
+    sameSite: 'none',
     path: '/api/auth/refresh',
   });
 };
