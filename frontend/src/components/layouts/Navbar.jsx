@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FiMenu, FiX, FiShoppingCart, FiUser, FiSearch, FiHeart, FiChevronDown } from 'react-icons/fi'
+import { FiMenu, FiX, FiShoppingCart, FiUser, FiSearch, FiHeart, FiChevronDown, FiHome, FiShoppingBag, FiList, FiSettings } from 'react-icons/fi'
 import { useCart } from '../../contexts/CartContext'
 import { useAuth } from '../../contexts/AuthContext'
 
@@ -37,19 +37,44 @@ const Navbar = () => {
     return () => document.removeEventListener('click', handleClickOutside)
   }, [isDropdownOpen])
 
+  // Load profile image - check BOTH normal and admin storage for admin users
   useEffect(() => {
     if (user) {
       const userId = user._id || user.id
-      const savedImage = localStorage.getItem(`profile_image_${userId}`)
-      if (savedImage) {
-        setProfileImage(savedImage)
+      
+      // For admin users, first check admin-specific storage, then fallback to normal storage
+      if (isAdmin) {
+        // Check admin profile image first (from admin panel)
+        const adminSavedImage = localStorage.getItem(`admin_profile_image_${userId}`)
+        if (adminSavedImage) {
+          setProfileImage(adminSavedImage)
+        } else {
+          // Fallback to normal profile image
+          const normalSavedImage = localStorage.getItem(`profile_image_${userId}`)
+          if (normalSavedImage) {
+            setProfileImage(normalSavedImage)
+          }
+        }
+      } else {
+        // For normal users, only check normal storage
+        const savedImage = localStorage.getItem(`profile_image_${userId}`)
+        if (savedImage) {
+          setProfileImage(savedImage)
+        }
       }
     }
-  }, [user])
+  }, [user, isAdmin])
 
+  // Listen for profile updates from BOTH normal and admin events
   useEffect(() => {
     const handleProfileUpdate = (event) => {
       if (event.detail && event.detail.userId === (user?._id || user?.id)) {
+        setProfileImage(event.detail.imageData)
+      }
+    }
+    
+    const handleAdminProfileUpdate = (event) => {
+      if (event.detail && event.detail.userId === (user?._id || user?.id) && isAdmin) {
         setProfileImage(event.detail.imageData)
       }
     }
@@ -60,14 +85,24 @@ const Navbar = () => {
       }
     }
     
+    const handleAdminProfileRemove = (event) => {
+      if (event.detail && event.detail.userId === (user?._id || user?.id) && isAdmin) {
+        setProfileImage(null)
+      }
+    }
+    
     window.addEventListener('profileImageUpdated', handleProfileUpdate)
+    window.addEventListener('adminProfileImageUpdated', handleAdminProfileUpdate)
     window.addEventListener('profileImageRemoved', handleProfileRemove)
+    window.addEventListener('adminProfileImageRemoved', handleAdminProfileRemove)
     
     return () => {
       window.removeEventListener('profileImageUpdated', handleProfileUpdate)
+      window.removeEventListener('adminProfileImageUpdated', handleAdminProfileUpdate)
       window.removeEventListener('profileImageRemoved', handleProfileRemove)
+      window.removeEventListener('adminProfileImageRemoved', handleAdminProfileRemove)
     }
-  }, [user])
+  }, [user, isAdmin])
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0)
 
@@ -101,6 +136,11 @@ const Navbar = () => {
     logout()
     setIsDropdownOpen(false)
     navigate('/login')
+  }
+
+  const handleNavigation = (path) => {
+    setIsDropdownOpen(false)
+    navigate(path)
   }
 
   return (
@@ -160,9 +200,12 @@ const Navbar = () => {
             
             {/* Admin Panel Link for Admin Users */}
             {isAdmin && (
-              <Link to="/admin" className="hidden md:block bg-warm text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-warm/80 transition">
+              <button 
+                onClick={() => window.location.href = '/admin'}
+                className="hidden md:block bg-warm text-white px-4 py-1.5 rounded-full text-sm font-medium hover:bg-warm/80 transition"
+              >
                 Admin Panel
-              </Link>
+              </button>
             )}
             
             {user ? (
@@ -193,15 +236,68 @@ const Navbar = () => {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg overflow-hidden z-50 border border-gray-100"
+                      className="absolute right-0 mt-2 w-56 bg-white shadow-lg rounded-lg overflow-hidden z-50 border border-gray-100"
                     >
-                      {/* Admin Dashboard link removed - only Logout remains for admin */}
-                      <button 
-                        onClick={handleLogout} 
-                        className="block w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-gray-50 transition"
-                      >
-                        Logout
-                      </button>
+                      {!isAdmin ? (
+                        // Normal User Menu Items
+                        <>
+                          <button 
+                            onClick={() => handleNavigation('/dashboard')}
+                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                          >
+                            <FiHome size={16} />
+                            Dashboard
+                          </button>
+                          <button 
+                            onClick={() => handleNavigation('/dashboard?tab=orders')}
+                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                          >
+                            <FiShoppingBag size={16} />
+                            My Orders
+                          </button>
+                          <button 
+                            onClick={() => handleNavigation('/wishlist')}
+                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                          >
+                            <FiHeart size={16} />
+                            Wishlist
+                          </button>
+                          <div className="border-t border-gray-100 my-1"></div>
+                          <button 
+                            onClick={handleLogout} 
+                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition"
+                          >
+                            <FiSettings size={16} />
+                            Logout
+                          </button>
+                        </>
+                      ) : (
+                        // Admin Menu Items
+                        <>
+                          <button 
+                            onClick={() => handleNavigation('/admin/profile')}
+                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                          >
+                            <FiUser size={16} />
+                            Profile
+                          </button>
+                          <button 
+                            onClick={() => window.location.href = '/admin'}
+                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                          >
+                            <FiHome size={16} />
+                            Admin Dashboard
+                          </button>
+                          <div className="border-t border-gray-100 my-1"></div>
+                          <button 
+                            onClick={handleLogout} 
+                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition"
+                          >
+                            <FiSettings size={16} />
+                            Logout
+                          </button>
+                        </>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -265,13 +361,46 @@ const Navbar = () => {
                 </Link>
               ))}
               {isAdmin && (
-                <Link 
-                  to="/admin" 
-                  onClick={() => setIsOpen(false)}
-                  className="block py-2 text-warm font-medium"
+                <button 
+                  onClick={() => {
+                    window.location.href = '/admin'
+                    setIsOpen(false)
+                  }}
+                  className="block py-2 text-warm font-medium w-full text-left"
                 >
                   Admin Panel
-                </Link>
+                </button>
+              )}
+              {user && !isAdmin && (
+                <>
+                  <button 
+                    onClick={() => {
+                      navigate('/dashboard')
+                      setIsOpen(false)
+                    }}
+                    className="block py-2 text-gray-600 hover:text-gray-800 w-full text-left"
+                  >
+                    Dashboard
+                  </button>
+                  <button 
+                    onClick={() => {
+                      navigate('/dashboard?tab=orders')
+                      setIsOpen(false)
+                    }}
+                    className="block py-2 text-gray-600 hover:text-gray-800 w-full text-left"
+                  >
+                    My Orders
+                  </button>
+                  <button 
+                    onClick={() => {
+                      navigate('/wishlist')
+                      setIsOpen(false)
+                    }}
+                    className="block py-2 text-gray-600 hover:text-gray-800 w-full text-left"
+                  >
+                    Wishlist
+                  </button>
+                </>
               )}
               <div className="pt-4 border-t border-gray-100">
                 <form onSubmit={handleSearch} className="relative">

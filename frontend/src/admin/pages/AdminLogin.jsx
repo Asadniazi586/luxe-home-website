@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi'
 import { useAuth } from '../../contexts/AuthContext'
-import toast from 'react-hot-toast'
 
 const AdminLogin = () => {
-  const navigate = useNavigate()
-  const { user, adminLogin } = useAuth()
+  const { user, adminLogin, loading: authLoading } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -16,12 +13,26 @@ const AdminLogin = () => {
     password: '',
   })
 
+  // If already logged in as admin, redirect immediately using window.location
   useEffect(() => {
-    // Check if admin is already logged in
-    if (user && user.role === 'admin') {
-      navigate('/admin', { replace: true })
+    if (!authLoading && user && user.role === 'admin') {
+      window.location.href = '/admin'
     }
-  }, [user, navigate])
+  }, [user, authLoading])
+
+  // Show loading while checking
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-cream flex items-center justify-center p-4">
+        <div className="text-center">Loading...</div>
+      </div>
+    )
+  }
+  
+  // If already admin, don't render anything (redirect will happen)
+  if (user && user.role === 'admin') {
+    return null
+  }
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -36,11 +47,12 @@ const AdminLogin = () => {
     const result = await adminLogin(formData.email, formData.password)
     
     if (result.success) {
-      navigate('/admin', { replace: true })
+      // Use window.location for hard redirect
+      window.location.href = '/admin'
     } else {
       setError(result.error || 'Invalid admin credentials')
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (

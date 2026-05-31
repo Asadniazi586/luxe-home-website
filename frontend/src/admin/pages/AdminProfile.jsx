@@ -91,8 +91,10 @@ const AdminProfile = () => {
         setProfileImage(imageData)
         const userId = user?._id || user?.id
         localStorage.setItem(`admin_profile_image_${userId}`, imageData)
-        // Dispatch custom event to notify navbar
-        window.dispatchEvent(new CustomEvent('profileImageUpdated', { detail: { imageData } }))
+        // Dispatch admin-specific event (NOT the normal user event)
+        window.dispatchEvent(new CustomEvent('adminProfileImageUpdated', { 
+          detail: { userId: userId, imageData: imageData } 
+        }))
         toast.success('Profile picture updated!')
       }
       reader.readAsDataURL(file)
@@ -103,8 +105,10 @@ const AdminProfile = () => {
     setProfileImage(null)
     const userId = user?._id || user?.id
     localStorage.removeItem(`admin_profile_image_${userId}`)
-    // Dispatch custom event to notify navbar
-    window.dispatchEvent(new CustomEvent('profileImageUpdated', { detail: { imageData: null } }))
+    // Dispatch admin-specific event (NOT the normal user event)
+    window.dispatchEvent(new CustomEvent('adminProfileImageRemoved', { 
+      detail: { userId: userId } 
+    }))
     toast.success('Profile picture removed')
   }
 
@@ -118,9 +122,8 @@ const AdminProfile = () => {
       const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
       const newUserData = { ...storedUser, ...updatedUser }
       localStorage.setItem('user', JSON.stringify(newUserData))
-      // Dispatch event to update navbar
-      window.dispatchEvent(new CustomEvent('profileImageUpdated'))
-      window.dispatchEvent(new Event('storage'))
+      // Dispatch admin-specific event
+      window.dispatchEvent(new CustomEvent('adminProfileUpdated'))
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update profile')
     } finally {

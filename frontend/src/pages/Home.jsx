@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useScroll, useTransform } from 'framer-motion'
-import { FiArrowRight, FiStar, FiTruck, FiRefreshCw, FiShoppingBag, FiHeart, FiChevronRight, FiPlus } from 'react-icons/fi'
+import { FiArrowRight, FiStar, FiTruck, FiRefreshCw, FiShoppingBag, FiHeart, FiChevronRight, FiPlus, FiEdit2 } from 'react-icons/fi'
 import { productService } from '../services/productService'
 import { useAuth } from '../contexts/AuthContext'
 import { useCart } from '../contexts/CartContext'
@@ -53,6 +53,13 @@ const Home = () => {
     e.stopPropagation()
     addToCart(product, 1)
     toast.success(`Added ${product.name} to cart!`)
+  }
+
+  const handleEditProduct = (product, e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    // Navigate to admin add product page with edit mode
+    window.location.href = `/admin/add-product?edit=${product._id || product.id}`
   }
 
   const categories = [
@@ -230,7 +237,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Bestsellers Section with Add to Cart buttons */}
+      {/* Bestsellers Section with Add to Cart and Edit buttons */}
       <section className="py-20 bg-cream-dark">
         <div className="container mx-auto px-4">
           <motion.div 
@@ -252,7 +259,7 @@ const Home = () => {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
           >
             {bestsellers.map((product) => (
-              <motion.div key={product._id || product.id} variants={itemVariants} className="group">
+              <motion.div key={product._id || product.id} variants={itemVariants} className="group relative">
                 <Link to={`/product/${product._id || product.id}`}>
                   <div className="relative overflow-hidden rounded-lg mb-4 bg-gray-100">
                     <img 
@@ -264,6 +271,16 @@ const Home = () => {
                       <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-charcoal text-xs px-2 py-1 rounded">
                         {product.badge}
                       </span>
+                    )}
+                    {/* Edit Icon - Only visible to admin */}
+                    {isAdmin && (
+                      <button
+                        onClick={(e) => handleEditProduct(product, e)}
+                        className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-1.5 rounded-full hover:bg-warm hover:text-white transition shadow-md"
+                        title="Edit Product"
+                      >
+                        <FiEdit2 className="w-4 h-4 text-gray-700 hover:text-white" />
+                      </button>
                     )}
                   </div>
                   <h3 className="text-sm font-medium text-charcoal mb-1 group-hover:text-warm transition">{product.name}</h3>

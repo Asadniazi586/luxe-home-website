@@ -2,10 +2,55 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { createUserRegistrationNotification } from './notificationController.js';
 
-// Generate JWT Token
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE,
+// Generate Access & Refresh Tokens
+const generateTokens = (id, role) => {
+  const accessToken = jwt.sign({ id, role }, process.env.JWT_ACCESS_SECRET, {
+    expiresIn: '15m',
+  });
+  
+  const refreshToken = jwt.sign({ id, role }, process.env.JWT_REFRESH_SECRET, {
+    expiresIn: '7d',
+  });
+  
+  return { accessToken, refreshToken };
+};
+
+// Set HTTP-Only Cookies
+const setTokenCookies = (res, accessToken, refreshToken) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  res.cookie('accessToken', accessToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'strict',
+    maxAge: 15 * 60 * 1000,
+    path: '/',
+  });
+  
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: '/api/auth/refresh',
+  });
+};
+
+const clearAuthCookies = (res) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  res.clearCookie('accessToken', {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'strict',
+    path: '/',
+  });
+  
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'strict',
+    path: '/api/auth/refresh',
   });
 };
 
@@ -31,13 +76,14 @@ export const registerUser = async (req, res) => {
     if (user) {
       await createUserRegistrationNotification(user);
       
-      // Regular users get token in response body (will be stored in sessionStorage)
+      const { accessToken, refreshToken } = generateTokens(user.id, user.role);
+      setTokenCookies(res, accessToken, refreshToken);
+      
       res.status(201).json({
         _id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
-        token: generateToken(user.id),
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -47,7 +93,7 @@ export const registerUser = async (req, res) => {
   }
 };
 
-// @desc    Login user (Regular User Only)
+// @desc    Login user (ALLOWS BOTH admin AND normal user)
 // @route   POST /api/auth/login
 // @access  Public
 export const loginUser = async (req, res) => {
@@ -64,20 +110,61 @@ export const loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Regular users get token in response body (will be stored in sessionStorage)
+    // ALLOW BOTH admin AND normal user through this endpoint
+    const { accessToken, refreshToken } = generateTokens(user.id, user.role);
+    setTokenCookies(res, accessToken, refreshToken);
+    
     res.json({
       _id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
-      token: generateToken(user.id),
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// @desc    Admin Login - Returns token
+// @desc    Refresh Access Token
+// @route   POST /api/auth/refresh
+// @access  Public
+export const refreshAccessToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    
+    if (!refreshToken) {
+      return res.status(401).json({ message: 'No refresh token' });
+    }
+    
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const user = await User.findById(decoded.id);
+    
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+    
+    const newAccessToken = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_ACCESS_SECRET,
+      { expiresIn: '15m' }
+    );
+    
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.cookie('accessToken', newAccessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000,
+      path: '/',
+    });
+    
+    res.json({ success: true });
+  } catch (error) {
+    res.status(403).json({ message: 'Invalid refresh token' });
+  }
+};
+
+// @desc    Admin Login (Separate admin panel login)
 // @route   POST /api/auth/admin/login
 // @access  Public
 export const adminLogin = async (req, res) => {
@@ -103,14 +190,14 @@ export const adminLogin = async (req, res) => {
         });
       }
       
-      const token = generateToken(adminUser.id);
+      const { accessToken, refreshToken } = generateTokens(adminUser.id, adminUser.role);
+      setTokenCookies(res, accessToken, refreshToken);
       
       res.json({
         _id: adminUser.id,
         name: adminUser.name,
         email: adminUser.email,
         role: 'admin',
-        token: token,
       });
     } else {
       return res.status(401).json({ message: 'Invalid admin credentials' });
@@ -121,19 +208,44 @@ export const adminLogin = async (req, res) => {
   }
 };
 
+// @desc    Logout
+// @route   POST /api/auth/logout
+// @access  Public
+export const logout = async (req, res) => {
+  clearAuthCookies(res);
+  res.json({ message: 'Logged out successfully' });
+};
+
 // @desc    Admin Logout
 // @route   POST /api/auth/admin/logout
 // @access  Public
 export const adminLogout = async (req, res) => {
-  const isProduction = process.env.NODE_ENV === 'production';
-  
-  res.clearCookie('admin_token', {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
-    path: '/',
-  });
+  clearAuthCookies(res);
   res.json({ message: 'Logged out successfully' });
+};
+
+// @desc    Get current user
+// @route   GET /api/auth/me
+// @access  Public
+export const getCurrentUser = async (req, res) => {
+  try {
+    const token = req.cookies.accessToken;
+    
+    if (!token) {
+      return res.json({ user: null });
+    }
+    
+    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+    const user = await User.findById(decoded.id).select('-password');
+    
+    if (!user) {
+      return res.json({ user: null });
+    }
+    
+    res.json({ user });
+  } catch (error) {
+    res.json({ user: null });
+  }
 };
 
 // @desc    Get user profile
@@ -181,7 +293,6 @@ export const updateUserProfile = async (req, res) => {
         name: updatedUser.name,
         email: updatedUser.email,
         role: updatedUser.role,
-        token: generateToken(updatedUser.id),
       });
     } else {
       res.status(404).json({ message: 'User not found' });

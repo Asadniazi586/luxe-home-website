@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext'
 
 const Login = () => {
   const navigate = useNavigate()
-  const { user, login } = useAuth()
+  const { user, login, loading: authLoading } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
@@ -15,13 +15,14 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
+  // Handle redirects - redirect BOTH normal users AND admins to HOME page
   useEffect(() => {
-    if (user && user.role === 'user') {
-      navigate('/dashboard')
-    } else if (user && user.role === 'admin') {
-      navigate('/shop')
+    // Only redirect if we have a user (not during logout)
+    if (!authLoading && user) {
+      // Both admin and normal user go to home page
+      navigate('/', { replace: true })
     }
-  }, [user, navigate])
+  }, [user, authLoading, navigate])
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -31,13 +32,26 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
+    setError(null)
+    
     const result = await login(formData.email, formData.password)
+    
     if (!result.success) {
       setError(result.error)
+      setLoading(false)
     }
-    setLoading(false)
   }
 
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="bg-cream min-h-screen flex items-center justify-center pt-20">
+        <div className="text-center">Loading...</div>
+      </div>
+    )
+  }
+
+  // Show login form when user is NOT logged in
   return (
     <div className="bg-cream min-h-screen flex items-center justify-center pt-20">
       <div className="container mx-auto px-4">

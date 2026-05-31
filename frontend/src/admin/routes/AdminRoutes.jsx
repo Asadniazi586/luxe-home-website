@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react'
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import React from 'react'
+import { Routes, Route } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext'
 import AdminDashboard from '../pages/AdminDashboard'
 import AdminProducts from '../pages/AdminProducts'
 import AdminOrders from '../pages/AdminOrders'
@@ -7,25 +8,23 @@ import AdminUsers from '../pages/AdminUsers'
 import AdminSettings from '../pages/AdminSettings'
 import AdminProfile from '../pages/AdminProfile'
 import AdminAddProduct from '../pages/AdminAddProduct'
+import Loader from '../../components/ui/Loader'
 
 const AdminRoutes = () => {
-  const location = useLocation()
+  const { user, loading } = useAuth()
   
-  console.log('📍 AdminRoutes - Current path:', location.pathname)
-  
-  // Check for admin token
-  const token = localStorage.getItem('admin_token')
-  const adminUser = localStorage.getItem('admin_user')
-  
-  console.log('🔑 Admin token exists:', !!token)
-  console.log('👤 Admin user exists:', !!adminUser)
-  
-  if (!token || !adminUser) {
-    console.log('❌ No admin credentials, redirecting to login')
-    return <Navigate to="/admin/login" replace />
+  // Show loader while checking auth
+  if (loading) {
+    return <Loader />
   }
-
-  console.log('✅ Admin authenticated, showing dashboard')
+  
+  // If not admin, redirect using window.location (not React Navigate)
+  if (!user || user.role !== 'admin') {
+    window.location.href = '/admin/login'
+    return null
+  }
+  
+  // If admin, render admin routes
   return (
     <Routes>
       <Route path="/" element={<AdminDashboard />} />

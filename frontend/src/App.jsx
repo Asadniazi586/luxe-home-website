@@ -5,6 +5,7 @@ import { CartProvider } from './contexts/CartContext'
 import { AuthProvider } from './contexts/AuthContext'
 import { WishlistProvider } from './contexts/WishlistContext'
 import { AdminProvider } from './contexts/AdminContext'
+import { AdminNavbarProvider } from './contexts/AdminNavbarContext'
 import Layout from './components/layouts/Layout'
 import Loader from './components/ui/Loader'
 import AdminLogin from './admin/pages/AdminLogin'
@@ -68,71 +69,73 @@ function App() {
     <AuthProvider>
       <CartProvider>
         <WishlistProvider>
-          <AdminProvider>
-            <Router>
-              <Routes>
-                {/* Admin Routes - No Layout */}
-                <Route path="/admin/login" element={<AdminLogin />} />
-                <Route path="/admin/*" element={<AdminRoutes />} />
-                
-                {/* Order Success - No Layout */}
-                <Route path="/order-success" element={<OrderSuccess />} />
-                
-                {/* Main Routes - With Layout */}
-                <Route path="/*" element={
-                  <Layout>
-                    <Suspense fallback={<Loader />}>
-                      <Routes>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/about" element={<About />} />
-                        <Route path="/shop" element={<Shop />} />
-                        <Route path="/product/:id" element={<ProductDetail />} />
-                        <Route path="/cart" element={<Cart />} />
-                        <Route path="/checkout" element={<Checkout />} />
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/register" element={<Register />} />
-                        <Route path="/dashboard" element={
-                          <ProtectedRoute requiredRole="user">
-                            <UserDashboard />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/wishlist" element={
-                          <ProtectedRoute requiredRole="user">
-                            <Wishlist />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/contact" element={<Contact />} />
-                        <Route path="/faqs" element={<FAQs />} />
-                        <Route path="/returns" element={<Returns />} />
-                        <Route path="/shipping" element={<Shipping />} />
-                        <Route path="/sustainability" element={<Sustainability />} />
-                        <Route path="/privacy" element={<PrivacyPolicy />} />
-                        <Route path="/terms" element={<TermsOfService />} />
-                        <Route path="/order/:id" element={<Order />} />
-                        <Route path="/track-order" element={<OrderTracking />} />
-                        <Route path="/press" element={<Press />} />
-                        <Route path="/careers" element={<Careers />} />
-                        <Route path="/accessibility" element={<Accessibility />} />
-                        <Route path="/cookies" element={<CookiePolicy />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </Suspense>
-                  </Layout>
-                } />
-              </Routes>
-            </Router>
-            <Toaster 
-              position="bottom-right"
-              toastOptions={{
-                duration: 3000,
-                style: {
-                  background: '#2C2C2C',
-                  color: '#fff',
-                  borderRadius: '12px',
-                },
-              }}
-            />
-          </AdminProvider>
+          <AdminNavbarProvider>
+            <AdminProvider>
+              <Router>
+                <Routes>
+                  {/* Admin Routes - No Layout */}
+                  <Route path="/admin/login" element={<AdminLogin />} />
+                  <Route path="/admin/*" element={<AdminRoutes key="admin-routes" />} />
+                  
+                  {/* Order Success - No Layout */}
+                  <Route path="/order-success" element={<OrderSuccess />} />
+                  
+                  {/* Main Routes - With Layout */}
+                  <Route path="/*" element={
+                    <Layout>
+                      <Suspense fallback={<Loader />}>
+                        <Routes>
+                          <Route path="/" element={<Home />} />
+                          <Route path="/about" element={<About />} />
+                          <Route path="/shop" element={<Shop />} />
+                          <Route path="/product/:id" element={<ProductDetail />} />
+                          <Route path="/cart" element={<Cart />} />
+                          <Route path="/checkout" element={<Checkout />} />
+                          <Route path="/login" element={<Login />} />
+                          <Route path="/register" element={<Register />} />
+                          <Route path="/dashboard" element={
+                            <ProtectedRoute requiredRole="user">
+                              <UserDashboard />
+                            </ProtectedRoute>
+                          } />
+                          <Route path="/wishlist" element={
+                            <ProtectedRoute requiredRole="user">
+                              <Wishlist />
+                            </ProtectedRoute>
+                          } />
+                          <Route path="/contact" element={<Contact />} />
+                          <Route path="/faqs" element={<FAQs />} />
+                          <Route path="/returns" element={<Returns />} />
+                          <Route path="/shipping" element={<Shipping />} />
+                          <Route path="/sustainability" element={<Sustainability />} />
+                          <Route path="/privacy" element={<PrivacyPolicy />} />
+                          <Route path="/terms" element={<TermsOfService />} />
+                          <Route path="/order/:id" element={<Order />} />
+                          <Route path="/track-order" element={<OrderTracking />} />
+                          <Route path="/press" element={<Press />} />
+                          <Route path="/careers" element={<Careers />} />
+                          <Route path="/accessibility" element={<Accessibility />} />
+                          <Route path="/cookies" element={<CookiePolicy />} />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </Suspense>
+                    </Layout>
+                  } />
+                </Routes>
+              </Router>
+              <Toaster 
+                position="bottom-right"
+                toastOptions={{
+                  duration: 3000,
+                  style: {
+                    background: '#2C2C2C',
+                    color: '#fff',
+                    borderRadius: '12px',
+                  },
+                }}
+              />
+            </AdminProvider>
+          </AdminNavbarProvider>
         </WishlistProvider>
       </CartProvider>
     </AuthProvider>

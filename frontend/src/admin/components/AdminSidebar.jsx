@@ -1,6 +1,5 @@
 import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { 
   FiHome, FiPackage, FiShoppingBag, FiUsers, FiSettings, 
   FiLogOut, FiChevronLeft, FiChevronRight, FiUser, FiPlusCircle
@@ -11,9 +10,20 @@ const AdminSidebar = ({ isOpen, setIsOpen }) => {
   const { logout } = useAuth()
   const navigate = useNavigate()
 
-  const handleLogout = () => {
-    logout()
-    navigate('/admin/login')
+  const handleLogout = async () => {
+    await logout()
+    window.location.href = '/admin/login'
+  }
+
+  // ONLY the arrow button toggles the sidebar
+  const handleArrowClick = (e) => {
+    e.stopPropagation()
+    setIsOpen(!isOpen)
+  }
+
+  // Menu click - does nothing to sidebar state
+  const handleMenuClick = () => {
+    // Intentionally empty - sidebar state stays exactly as is
   }
 
   const menuItems = [
@@ -27,24 +37,19 @@ const AdminSidebar = ({ isOpen, setIsOpen }) => {
   ]
 
   return (
-    <motion.div
-      initial={{ width: 256 }}
-      animate={{ width: isOpen ? 256 : 80 }}
-      className="fixed left-0 top-0 h-full bg-gray-900 text-white shadow-xl z-20"
+    <div
+      style={{ width: isOpen ? 256 : 80 }}
+      className="fixed left-0 top-0 h-full bg-gray-900 text-white shadow-xl z-20 transition-all duration-300"
     >
-      {/* Logo */}
+      {/* Logo Section */}
       <div className="flex items-center justify-between p-5 border-b border-gray-700">
         {isOpen && (
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-xl font-light tracking-wide text-white"
-          >
+          <span className="text-xl font-light tracking-wide text-white">
             Admin Panel
-          </motion.span>
+          </span>
         )}
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={handleArrowClick}
           className="p-2 rounded-lg hover:bg-gray-800 transition text-white"
         >
           {isOpen ? <FiChevronLeft size={20} /> : <FiChevronRight size={20} />}
@@ -59,6 +64,7 @@ const AdminSidebar = ({ isOpen, setIsOpen }) => {
               key={item.path}
               to={item.path}
               end={item.end}
+              onClick={handleMenuClick}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-5 py-3 mx-4 rounded-lg transition-all duration-200 ${
                   isActive
@@ -84,7 +90,7 @@ const AdminSidebar = ({ isOpen, setIsOpen }) => {
           {isOpen && <span className="text-sm font-medium text-white">Logout</span>}
         </button>
       </div>
-    </motion.div>
+    </div>
   )
 }
 

@@ -11,61 +11,39 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const checkAuth = () => {
-      // STEP 1: ALWAYS check for admin token FIRST (regardless of path)
-      const adminToken = localStorage.getItem('admin_token')
-      const adminUser = localStorage.getItem('admin_user')
-      
-      if (adminToken && adminUser) {
-        try {
-          const parsedUser = JSON.parse(adminUser)
-          if (parsedUser.role === 'admin') {
-            console.log('✅ Admin user detected, setting as current user')
-            setUser(parsedUser)
-            setLoading(false)
-            return
-          }
-        } catch (e) {}
-      }
-      
-      // STEP 2: If no admin token, check for normal user
-      const isAdminPath = window.location.pathname.startsWith('/admin')
-      
-      if (!isAdminPath) {
-        const userData = sessionStorage.getItem('user_user')
-        if (userData) {
-          try {
-            const parsedUser = JSON.parse(userData)
-            console.log('✅ Normal user detected')
-            setUser(parsedUser)
-            setLoading(false)
-            return
-          } catch (e) {}
+    const checkAuth = async () => {
+      try {
+        const response = await authService.getCurrentUser()
+        if (response.user) {
+          console.log('✅ User authenticated:', response.user.role)
+          setUser(response.user)
+        } else {
+          console.log('❌ No authenticated user')
+          setUser(null)
         }
+      } catch (error) {
+        console.error('Auth check failed:', error)
+        setUser(null)
+      } finally {
+        setLoading(false)
       }
-      
-      console.log('❌ No user found')
-      setLoading(false)
     }
     
     checkAuth()
   }, [])
 
+  // Unified login - handles both admin and normal users
   const login = async (email, password) => {
     try {
       const data = await authService.login(email, password)
+      setUser(data)
       
       if (data.role === 'admin') {
-        localStorage.setItem('admin_token', data.token)
-        localStorage.setItem('admin_user', JSON.stringify(data))
-        setUser(data)
         toast.success('Admin login successful!')
       } else {
-        sessionStorage.setItem('user_user', JSON.stringify(data))
-        setUser(data)
         toast.success('Login successful!')
       }
-      return { success: true }
+      return { success: true, role: data.role }
     } catch (error) {
       const message = error.response?.data?.message || 'Login failed'
       toast.error(message)
@@ -73,14 +51,13 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
+  // Admin login for admin panel
   const adminLogin = async (email, password) => {
     try {
       const data = await authService.adminLogin(email, password)
-      localStorage.setItem('admin_token', data.token)
-      localStorage.setItem('admin_user', JSON.stringify(data))
       setUser(data)
       toast.success('Admin login successful!')
-      return { success: true }
+      return { success: true, role: 'admin' }
     } catch (error) {
       const message = error.response?.data?.message || 'Admin login failed'
       toast.error(message)
@@ -91,7 +68,6 @@ export const AuthProvider = ({ children }) => {
   const register = async (name, email, password) => {
     try {
       const data = await authService.register({ name, email, password })
-      sessionStorage.setItem('user_user', JSON.stringify(data))
       setUser(data)
       toast.success('Registration successful!')
       return { success: true }
@@ -102,16 +78,42 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  const logout = () => {
-    localStorage.removeItem('admin_token')
-    localStorage.removeItem('admin_user')
-    sessionStorage.removeItem('user_user')
+  // Unified logout - clears everything and redirects to login
+  const logout = async () => {
+    try {
+      await authService.logout()
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
     setUser(null)
     toast.success('Logged out successfully')
+    // Redirect to login page
+    window.location.href = '/login'
+  }
+
+  // Admin panel logout - clears everything and redirects to admin login
+  const adminLogout = async () => {
+    try {
+      await authService.adminLogout()
+    } catch (error) {
+      console.error('Admin logout error:', error)
+    }
+    setUser(null)
+    toast.success('Admin logged out successfully')
+    // Redirect to admin login page
+    window.location.href = '/admin/login'
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, adminLogin, register, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      login, 
+      adminLogin, 
+      register, 
+      logout,
+      adminLogout
+    }}>
       {children}
     </AuthContext.Provider>
   )

@@ -21,7 +21,13 @@ export const authService = {
     return response.data;
   },
 
-  logout: () => {
-    // Handled in AuthContext
+  logout: async () => {
+    const response = await api.post('/auth/logout');
+    return response.data;
+  },
+
+  getCurrentUser: async () => {
+    const response = await api.get('/auth/me');
+    return response.data;
   },
 };

@@ -50,11 +50,14 @@ const UserDashboard = () => {
     }
   }, [user, navigate]);
 
-  // Set active tab from URL parameter
+   // Set active tab from URL parameter
   useEffect(() => {
     const tab = searchParams.get("tab");
     if (tab === "orders") {
       setActiveTab("orders");
+    } else {
+      // No tab parameter or any other value - show overview
+      setActiveTab("overview");
     }
   }, [searchParams]);
 
