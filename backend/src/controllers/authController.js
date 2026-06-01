@@ -15,18 +15,17 @@ const generateTokens = (id, role) => {
   return { accessToken, refreshToken };
 };
 
-// Set HTTP-Only Cookies - FIXED for mobile browsers
+// Set HTTP-Only Cookies - FIXED for cross-domain production
 const setTokenCookies = (res, accessToken, refreshToken) => {
   const isProduction = process.env.NODE_ENV === 'production';
   
-  // For mobile browsers, we need more permissive settings
+  // Critical fix for cross-domain cookies
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
-    secure: true, // Must be true for cross-domain
-    sameSite: 'none', // Must be 'none' for cross-domain
+    secure: true, // MUST be true for cross-domain
+    sameSite: 'none', // MUST be 'none' for cross-domain
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/',
-    domain: '.onrender.com' // Add domain to share cookies across subdomains
   });
   
   res.cookie('refreshToken', refreshToken, {
@@ -35,7 +34,6 @@ const setTokenCookies = (res, accessToken, refreshToken) => {
     sameSite: 'none',
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     path: '/',
-    domain: '.onrender.com'
   });
 };
 
@@ -45,7 +43,6 @@ const clearAuthCookies = (res) => {
     secure: true,
     sameSite: 'none',
     path: '/',
-    domain: '.onrender.com'
   });
   
   res.clearCookie('refreshToken', {
@@ -53,7 +50,6 @@ const clearAuthCookies = (res) => {
     secure: true,
     sameSite: 'none',
     path: '/',
-    domain: '.onrender.com'
   });
 };
 
