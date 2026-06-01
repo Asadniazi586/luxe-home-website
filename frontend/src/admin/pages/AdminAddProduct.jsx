@@ -22,9 +22,9 @@ const AdminAddProduct = () => {
     originalPrice: '',
     category: 'bedding',
     description: '',
-    image: '', // Keep for backward compatibility
-    mainImage: '', // New field
-    images: [], // Array for multiple images
+    image: '',
+    mainImage: '',
+    images: [],
     sizes: [],
     colors: [],
     inStock: true,
@@ -188,14 +188,13 @@ const AdminAddProduct = () => {
       return
     }
     
-    // Prepare data for backend - maintain compatibility
     const productData = {
       name: formData.name,
       price: parseFloat(formData.price),
       originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : 0,
       category: formData.category,
       description: formData.description,
-      image: formData.image, // Main image for backward compatibility
+      image: formData.image,
       mainImage: formData.mainImage,
       images: formData.images,
       sizes: formData.sizes,
@@ -225,28 +224,28 @@ const AdminAddProduct = () => {
 
   return (
     <AdminLayout>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-light text-gray-800">
+          <h1 className="text-2xl sm:text-3xl font-light text-gray-800">
             {isEditing ? 'Edit Product' : 'Add New Product'}
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-gray-500 text-sm mt-1">
             {isEditing ? 'Update product information' : 'Fill in the details to add a new product'}
           </p>
         </div>
         <button
           onClick={() => navigate('/admin/products')}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+          className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition text-sm w-full sm:w-auto justify-center"
         >
           <FiX size={18} /> Cancel
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-6">
-        <div className="grid lg:grid-cols-2 gap-8">
+      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+        <div className="flex flex-col lg:flex-row lg:gap-8">
           
           {/* Left Column - Images Section */}
-          <div className="space-y-6">
+          <div className="w-full lg:w-1/2 space-y-6">
             
             {/* Main Image Upload */}
             <div>
@@ -254,7 +253,7 @@ const AdminAddProduct = () => {
                 Main Product Image <span className="text-red-500">*</span>
               </label>
               
-              <div className="flex gap-3 mb-4">
+              <div className="flex flex-col sm:flex-row gap-3 mb-4">
                 <button
                   type="button"
                   onClick={() => setImageType('url')}
@@ -284,7 +283,7 @@ const AdminAddProduct = () => {
                   <img 
                     src={imagePreview} 
                     alt="Preview" 
-                    className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                    className="w-full h-40 sm:h-48 object-cover rounded-lg border border-gray-200"
                   />
                   <button
                     type="button"
@@ -308,7 +307,7 @@ const AdminAddProduct = () => {
               )}
 
               {imageType === 'file' && (
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-warm transition">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 text-center hover:border-warm transition">
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -336,7 +335,7 @@ const AdminAddProduct = () => {
                 Gallery Images <span className="text-gray-400 text-xs">(Optional - will appear in product gallery)</span>
               </label>
               
-              <div className="flex gap-3 mb-4">
+              <div className="flex flex-col sm:flex-row gap-3 mb-4">
                 <button
                   type="button"
                   onClick={() => setGalleryImageType('url')}
@@ -364,7 +363,7 @@ const AdminAddProduct = () => {
               {galleryImageType === 'url' && (
                 <div className="mb-4">
                   {showGalleryUrlInput ? (
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <input
                         type="text"
                         value={galleryUrlInput}
@@ -372,20 +371,22 @@ const AdminAddProduct = () => {
                         placeholder="https://images.unsplash.com/..."
                         className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-warm"
                       />
-                      <button
-                        type="button"
-                        onClick={addGalleryImageByUrl}
-                        className="px-4 py-2 bg-warm text-white rounded-lg hover:bg-warm/80 transition"
-                      >
-                        Add
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowGalleryUrlInput(false)}
-                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
-                      >
-                        Cancel
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={addGalleryImageByUrl}
+                          className="flex-1 px-4 py-2 bg-warm text-white rounded-lg hover:bg-warm/80 transition"
+                        >
+                          Add
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowGalleryUrlInput(false)}
+                          className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <button
@@ -400,7 +401,7 @@ const AdminAddProduct = () => {
               )}
 
               {galleryImageType === 'file' && (
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-warm transition mb-4">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 text-center hover:border-warm transition mb-4">
                   <input
                     type="file"
                     ref={multipleImagesRef}
@@ -426,13 +427,13 @@ const AdminAddProduct = () => {
               {galleryImages.length > 0 && (
                 <div>
                   <p className="text-sm text-gray-600 mb-2">Gallery Images ({galleryImages.length})</p>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
                     {galleryImages.map((img, idx) => (
-                      <div key={idx} className="relative group">
+                      <div key={idx} className="relative group aspect-square">
                         <img 
                           src={img} 
                           alt={`Gallery ${idx + 1}`} 
-                          className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                          className="w-full h-full object-cover rounded-lg border border-gray-200"
                         />
                         <button
                           type="button"
@@ -450,7 +451,7 @@ const AdminAddProduct = () => {
           </div>
 
           {/* Right Column - Product Details */}
-          <div className="space-y-4">
+          <div className="w-full lg:w-1/2 space-y-4 mt-6 lg:mt-0">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
               <input
@@ -463,8 +464,8 @@ const AdminAddProduct = () => {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Price ($) *</label>
                 <input
                   type="number"
@@ -476,7 +477,7 @@ const AdminAddProduct = () => {
                   className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-warm"
                 />
               </div>
-              <div>
+              <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Original Price ($)</label>
                 <input
                   type="number"
@@ -489,8 +490,8 @@ const AdminAddProduct = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                 <select
                   name="category"
@@ -503,7 +504,7 @@ const AdminAddProduct = () => {
                   ))}
                 </select>
               </div>
-              <div>
+              <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Badge</label>
                 <select
                   name="badge"
@@ -566,7 +567,7 @@ const AdminAddProduct = () => {
         {/* Colors Section */}
         <div className="mt-6 pt-6 border-t">
           <label className="block text-sm font-medium text-gray-700 mb-3">Colors</label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-1">
             {colorOptions.map(color => (
               <button
                 key={color}
@@ -585,18 +586,18 @@ const AdminAddProduct = () => {
         </div>
 
         {/* Form Buttons */}
-        <div className="flex justify-end gap-3 mt-8 pt-6 border-t">
+        <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8 pt-6 border-t">
           <button
             type="button"
             onClick={() => navigate('/admin/products')}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition order-2 sm:order-1"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center gap-2 px-6 py-2 bg-charcoal text-white rounded-lg hover:bg-charcoal-light transition disabled:opacity-50"
+            className="flex items-center justify-center gap-2 px-6 py-2 bg-charcoal text-white rounded-lg hover:bg-charcoal-light transition disabled:opacity-50 order-1 sm:order-2"
           >
             <FiSave size={18} /> {loading ? 'Saving...' : (isEditing ? 'Update Product' : 'Add Product')}
           </button>
