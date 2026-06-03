@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi'
 import { useAuth } from '../contexts/AuthContext'
 
 const Login = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { user, login, loading: authLoading } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
@@ -15,14 +16,16 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  // Handle redirects - redirect BOTH normal users AND admins to HOME page
+  // Get the redirect path from location state (checkout page or default home)
+  const from = location.state?.from || '/'
+
+  // Handle redirect after login - redirect based on where user came from
   useEffect(() => {
-    // Only redirect if we have a user (not during logout)
     if (!authLoading && user) {
-      // Both admin and normal user go to home page
-      navigate('/', { replace: true })
+      // If user came from checkout, go back to checkout, otherwise go to home
+      navigate(from, { replace: true })
     }
-  }, [user, authLoading, navigate])
+  }, [user, authLoading, navigate, from])
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -53,7 +56,7 @@ const Login = () => {
 
   // Show login form when user is NOT logged in
   return (
-    <div className="bg-cream min-h-screen flex items-center justify-center pt-20">
+    <div className="bg-cream min-h-screen flex items-center justify-center pt-2">
       <div className="container mx-auto px-4">
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8">
