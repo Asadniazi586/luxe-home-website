@@ -96,43 +96,50 @@ const Shop = () => {
 
   if (loading) {
     return (
-      <div className="bg-cream min-h-screen pt-32 flex items-center justify-center">
-        <div className="w-12 h-12 border-3 border-warm border-t-transparent rounded-full animate-spin" />
+      <div className="bg-[#FAF9F7] min-h-screen flex items-center justify-center">
+        <div className="w-10 h-10 border-2 border-[#D4A574] border-t-[#2C2C2C] rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="bg-cream min-h-screen pt-20">
-      <div className="container mx-auto px-4 py-8">
+    <div className="bg-[#FAF9F7] min-h-screen">
+      <div className="container mx-auto px-4 pt-12 pb-12">
         <div ref={productsSectionRef}>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-light tracking-wide text-charcoal">Shop All</h1>
-              <p className="text-gray-500 text-sm mt-1">{filteredProducts.length} products</p>
+              <span className="text-[#D4A574] text-[11px] tracking-[0.3em] uppercase font-['Inter',_sans-serif] font-medium mb-2 block">
+                Signature Collection
+              </span>
+              <h1 className="font-['Cormorant_Garamond',_Georgia,_serif] font-light text-4xl md:text-5xl text-[#2C2C2C] tracking-wide">
+                Shop All
+              </h1>
+              <div className="w-12 h-px bg-[#D4A574] mt-3" />
+              <p className="text-gray-400 text-sm mt-4 font-['Inter',_sans-serif]">
+                {filteredProducts.length} products
+              </p>
             </div>
             
             <div className="flex gap-3 flex-wrap">
-              {/* Add Product Button for Admin */}
               {isAdmin && (
                 <Link to="/admin/add-product">
-                  <button className="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-green-600 transition flex items-center gap-2">
-                    <FiPlus className="w-4 h-4" /> Add Product
+                  <button className="group bg-[#2C2C2C] text-white px-5 py-2.5 text-[11px] tracking-[0.2em] uppercase hover:bg-[#D4A574] transition-all duration-300 flex items-center gap-2 font-['Inter',_sans-serif] font-medium rounded-full">
+                    <FiPlus className="w-3.5 h-3.5" /> Add Product
                   </button>
                 </Link>
               )}
               
               <button 
                 onClick={() => setFilterOpen(!filterOpen)}
-                className="md:hidden flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-full text-sm bg-white"
+                className="md:hidden flex items-center gap-2 px-4 py-2.5 border border-[#E8E5E0] rounded-full text-[11px] tracking-wide bg-white hover:border-[#D4A574] transition-colors font-['Inter',_sans-serif]"
               >
-                <FiFilter /> Filters
+                <FiFilter className="w-3.5 h-3.5" /> Filters
               </button>
               
               <select 
                 value={sortBy} 
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 border border-gray-200 rounded-full text-sm bg-white focus:outline-none focus:border-warm"
+                className="px-5 py-2.5 border border-[#E8E5E0] rounded-full text-[11px] tracking-wide bg-white focus:outline-none focus:border-[#D4A574] transition-colors font-['Inter',_sans-serif] cursor-pointer"
               >
                 <option value="featured">Featured</option>
                 <option value="price-low">Price: Low to High</option>
@@ -142,18 +149,24 @@ const Shop = () => {
               </select>
               
               <div className="hidden md:flex gap-2">
-                <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition ${viewMode === 'grid' ? 'bg-warm text-white' : 'bg-white text-gray-500'}`}>
-                  <FiGrid />
+                <button 
+                  onClick={() => setViewMode('grid')} 
+                  className={`p-2 rounded-full transition-all duration-300 ${viewMode === 'grid' ? 'bg-[#D4A574] text-white' : 'bg-white text-[#2C2C2C] border border-[#E8E5E0] hover:border-[#D4A574]'}`}
+                >
+                  <FiGrid className="w-4 h-4" />
                 </button>
-                <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition ${viewMode === 'list' ? 'bg-warm text-white' : 'bg-white text-gray-500'}`}>
-                  <FiList />
+                <button 
+                  onClick={() => setViewMode('list')} 
+                  className={`p-2 rounded-full transition-all duration-300 ${viewMode === 'list' ? 'bg-[#D4A574] text-white' : 'bg-white text-[#2C2C2C] border border-[#E8E5E0] hover:border-[#D4A574]'}`}
+                >
+                  <FiList className="w-4 h-4" />
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-8">
+        <div className="flex flex-col md:flex-row gap-10">
           {/* Sidebar Filters */}
           <AnimatePresence>
             {(filterOpen || window.innerWidth >= 768) && (
@@ -161,23 +174,27 @@ const Shop = () => {
                 initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -50 }}
-                className="fixed inset-0 z-50 md:relative md:inset-auto md:z-auto bg-cream md:bg-transparent p-6 md:p-0 w-80 md:w-64 overflow-y-auto"
+                className="fixed inset-0 z-50 md:relative md:inset-auto md:z-auto bg-[#FAF9F7] md:bg-transparent p-6 md:p-0 w-80 md:w-64 overflow-y-auto shadow-xl md:shadow-none"
               >
-                <div className="flex justify-between items-center mb-6 md:hidden">
-                  <h3 className="font-medium text-charcoal">Filters</h3>
-                  <button onClick={() => setFilterOpen(false)}><FiX /></button>
+                <div className="flex justify-between items-center mb-8 md:hidden">
+                  <h3 className="font-['Cormorant_Garamond',_Georgia,_serif] text-xl text-[#2C2C2C]">Filters</h3>
+                  <button onClick={() => setFilterOpen(false)} className="p-1"><FiX className="w-5 h-5 text-gray-500" /></button>
                 </div>
                 
-                <div className="space-y-8">
+                <div className="space-y-10">
                   <div>
-                    <h3 className="font-medium text-charcoal mb-3">Categories</h3>
-                    <div className="space-y-2">
+                    <h3 className="text-[11px] tracking-[0.2em] uppercase text-[#2C2C2C] font-['Inter',_sans-serif] font-semibold mb-4">
+                      Categories
+                    </h3>
+                    <div className="space-y-1">
                       {categories.map(cat => (
                         <button
                           key={cat}
                           onClick={() => handleCategoryClick(cat)}
-                          className={`block w-full text-left px-3 py-2 rounded-lg text-sm capitalize transition ${
-                            selectedCategory === cat ? 'bg-warm text-white' : 'text-gray-600 hover:bg-gray-100'
+                          className={`block w-full text-left px-3 py-2 text-sm capitalize transition-all duration-300 font-['Inter',_sans-serif] ${
+                            selectedCategory === cat 
+                              ? 'text-[#D4A574] bg-[#D4A574]/5 border-l-2 border-[#D4A574]' 
+                              : 'text-gray-500 hover:text-[#2C2C2C] hover:bg-gray-50'
                           }`}
                         >
                           {cat === 'all' ? 'All Products' : cat}
@@ -187,14 +204,18 @@ const Shop = () => {
                   </div>
 
                   <div>
-                    <h3 className="font-medium text-charcoal mb-3">Collections</h3>
-                    <div className="space-y-2">
+                    <h3 className="text-[11px] tracking-[0.2em] uppercase text-[#2C2C2C] font-['Inter',_sans-serif] font-semibold mb-4">
+                      Collections
+                    </h3>
+                    <div className="space-y-1">
                       {badges.map(badge => (
                         <button
                           key={badge.id}
                           onClick={() => handleCollectionClick(badge.id)}
-                          className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm transition ${
-                            selectedBadge === badge.id ? 'bg-warm text-white' : 'text-gray-600 hover:bg-gray-100'
+                          className={`flex items-center gap-3 w-full px-3 py-2 text-sm transition-all duration-300 font-['Inter',_sans-serif] ${
+                            selectedBadge === badge.id 
+                              ? 'text-[#D4A574] bg-[#D4A574]/5 border-l-2 border-[#D4A574]' 
+                              : 'text-gray-500 hover:text-[#2C2C2C] hover:bg-gray-50'
                           }`}
                         >
                           <badge.icon className="w-4 h-4" />
@@ -216,7 +237,7 @@ const Shop = () => {
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
-                className={`grid gap-6 ${
+                className={`grid gap-7 ${
                   viewMode === 'grid' 
                     ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
                     : 'grid-cols-1'
@@ -232,13 +253,13 @@ const Shop = () => {
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-center py-12"
+                className="text-center py-16"
               >
-                <div className="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <FiPackage className="w-10 h-10 text-gray-400" />
+                <div className="w-20 h-20 mx-auto bg-[#F5F4F0] rounded-full flex items-center justify-center mb-5">
+                  <FiPackage className="w-10 h-10 text-[#D4A574]/50" />
                 </div>
-                <p className="text-gray-500 mb-2">No products found.</p>
-                <p className="text-gray-400 text-sm">Try adjusting your filters</p>
+                <p className="text-[#2C2C2C] mb-2 font-['Inter',_sans-serif] tracking-wide">No products found.</p>
+                <p className="text-gray-400 text-sm font-['Inter',_sans-serif]">Try adjusting your filters</p>
               </motion.div>
             )}
           </div>
