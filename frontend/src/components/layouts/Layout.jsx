@@ -21,7 +21,7 @@ const Layout = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col bg-cream">
       <Navbar />
-      <main className={`flex-grow ${isHomePage ? 'pt-0 md:pt-16' : 'pt-16'}`}>
+      <main className={`flex-grow ${isHomePage ? 'pt-0 md:pt-16' : 'pt-0 md:pt-16'}`}>
         {children}
       </main>
       <Footer />

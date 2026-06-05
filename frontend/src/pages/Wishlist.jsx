@@ -47,7 +47,7 @@ const Wishlist = () => {
   }
 
   return (
-    <div className="bg-cream min-h-screen pt-20">
+    <div className="bg-cream min-h-screen pt-0 md:pt-20">
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl md:text-4xl font-light tracking-wide text-charcoal mb-8">My Wishlist</h1>
         

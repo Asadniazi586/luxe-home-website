@@ -386,146 +386,157 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Mobile Bottom Navigation Bar - Only visible on mobile */}
-      {isMobile && (
-        <>
-          <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-100 z-50 md:hidden">
-            <div className="flex justify-around items-center py-2 px-2">
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition text-gray-500 hover:text-warm"
-              >
-                <FiMenu className="w-5 h-5" />
-                <span className="text-[10px] font-medium">Menu</span>
-              </button>
+     {/* Mobile Bottom Navigation Bar - Only visible on mobile */}
+{isMobile && (
+  <>
+    <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-100 z-50 md:hidden">
+      <div className="flex justify-around items-center py-2 px-2">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition text-gray-500 hover:text-warm"
+        >
+          <FiMenu className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Menu</span>
+        </button>
 
-              <Link
-                to="/wishlist"
-                className="flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition text-gray-500 hover:text-warm"
-              >
-                <FiHeart className="w-5 h-5" />
-                <span className="text-[10px] font-medium">Wishlist</span>
-              </Link>
+        <Link
+          to="/wishlist"
+          className="flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition text-gray-500 hover:text-warm"
+        >
+          <FiHeart className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Wishlist</span>
+        </Link>
 
-              <Link
-                to="/"
-                className={`flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition ${
-                  location.pathname === '/' ? 'text-warm' : 'text-gray-500 hover:text-warm'
-                }`}
-              >
-                <FiHome className="w-5 h-5" />
-                <span className="text-[10px] font-medium">Home</span>
-              </Link>
+        <Link
+          to="/"
+          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition ${
+            location.pathname === '/' ? 'text-warm' : 'text-gray-500 hover:text-warm'
+          }`}
+        >
+          <FiHome className="w-5 h-5" />
+          <span className="text-[10px] font-medium">Home</span>
+        </Link>
 
-              <Link
-                to="/cart"
-                className="relative flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition text-gray-500 hover:text-warm"
-              >
-                <div className="relative">
-                  <FiShoppingCart className="w-5 h-5" />
-                  {cartCount > 0 && (
-                    <span className="absolute -top-2 -right-2 w-4 h-4 bg-warm text-white text-[9px] rounded-full flex items-center justify-center">
-                      {cartCount > 9 ? '9+' : cartCount}
-                    </span>
-                  )}
-                </div>
-                <span className="text-[10px] font-medium">Cart</span>
-              </Link>
-
-              <div className="relative user-dropdown">
-                <button
-                  onClick={toggleDropdown}
-                  className="flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition text-gray-500 hover:text-warm focus:outline-none"
-                >
-                  {profileImage ? (
-                    <img 
-                      src={profileImage} 
-                      alt="Profile" 
-                      className="w-5 h-5 rounded-full object-cover"
-                    />
-                  ) : (
-                    <FiUser className="w-5 h-5" />
-                  )}
-                  <span className="text-[10px] font-medium">Profile</span>
-                </button>
-                
-                <AnimatePresence>
-                  {isDropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute bottom-full right-0 mb-2 w-48 bg-white shadow-lg rounded-lg overflow-hidden z-50 border border-gray-100"
-                    >
-                      {!isAdmin ? (
-                        <>
-                          <button 
-                            onClick={() => handleNavigation('/dashboard')}
-                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
-                          >
-                            <FiHome size={16} />
-                            Dashboard
-                          </button>
-                          <button 
-                            onClick={() => handleNavigation('/dashboard?tab=orders')}
-                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
-                          >
-                            <FiShoppingBag size={16} />
-                            My Orders
-                          </button>
-                          <button 
-                            onClick={() => handleNavigation('/wishlist')}
-                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
-                          >
-                            <FiHeart size={16} />
-                            Wishlist
-                          </button>
-                          <div className="border-t border-gray-100 my-1"></div>
-                          <button 
-                            onClick={handleLogout} 
-                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition"
-                          >
-                            <FiSettings size={16} />
-                            Logout
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button 
-                            onClick={() => handleNavigation('/admin/profile')}
-                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
-                          >
-                            <FiUser size={16} />
-                            Profile
-                          </button>
-                          <button 
-                            onClick={() => window.location.href = '/admin'}
-                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
-                          >
-                            <FiHome size={16} />
-                            Admin Dashboard
-                          </button>
-                          <div className="border-t border-gray-100 my-1"></div>
-                          <button 
-                            onClick={handleLogout} 
-                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition"
-                          >
-                            <FiSettings size={16} />
-                            Logout
-                          </button>
-                        </>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
+        <Link
+          to="/cart"
+          className="relative flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition text-gray-500 hover:text-warm"
+        >
+          <div className="relative">
+            <FiShoppingCart className="w-5 h-5" />
+            {cartCount > 0 && (
+              <span className="absolute -top-2 -right-2 w-4 h-4 bg-warm text-white text-[9px] rounded-full flex items-center justify-center">
+                {cartCount > 9 ? '9+' : cartCount}
+              </span>
+            )}
           </div>
-          
-          <div className="pb-16"></div>
-        </>
-      )}
+          <span className="text-[10px] font-medium">Cart</span>
+        </Link>
+
+        {/* Profile - Only show dropdown when logged in, otherwise redirect to login */}
+        {user ? (
+          <div className="relative user-dropdown">
+            <button
+              onClick={toggleDropdown}
+              className="flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition text-gray-500 hover:text-warm focus:outline-none"
+            >
+              {profileImage ? (
+                <img 
+                  src={profileImage} 
+                  alt="Profile" 
+                  className="w-5 h-5 rounded-full object-cover"
+                />
+              ) : (
+                <FiUser className="w-5 h-5" />
+              )}
+              <span className="text-[10px] font-medium">Profile</span>
+            </button>
+            
+            <AnimatePresence>
+              {isDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute bottom-full right-0 mb-2 w-48 bg-white shadow-lg rounded-lg overflow-hidden z-50 border border-gray-100"
+                >
+                  {!isAdmin ? (
+                    <>
+                      <button 
+                        onClick={() => handleNavigation('/dashboard')}
+                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                      >
+                        <FiHome size={16} />
+                        Dashboard
+                      </button>
+                      <button 
+                        onClick={() => handleNavigation('/dashboard?tab=orders')}
+                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                      >
+                        <FiShoppingBag size={16} />
+                        My Orders
+                      </button>
+                      <button 
+                        onClick={() => handleNavigation('/wishlist')}
+                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                      >
+                        <FiHeart size={16} />
+                        Wishlist
+                      </button>
+                      <div className="border-t border-gray-100 my-1"></div>
+                      <button 
+                        onClick={handleLogout} 
+                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition"
+                      >
+                        <FiSettings size={16} />
+                        Logout
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button 
+                        onClick={() => handleNavigation('/admin/profile')}
+                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                      >
+                        <FiUser size={16} />
+                        Profile
+                      </button>
+                      <button 
+                        onClick={() => window.location.href = '/admin'}
+                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                      >
+                        <FiHome size={16} />
+                        Admin Dashboard
+                      </button>
+                      <div className="border-t border-gray-100 my-1"></div>
+                      <button 
+                        onClick={handleLogout} 
+                        className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition"
+                      >
+                        <FiSettings size={16} />
+                        Logout
+                      </button>
+                    </>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        ) : (
+          <Link
+            to="/login"
+            className="flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition text-gray-500 hover:text-warm"
+          >
+            <FiUser className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Profile</span>
+          </Link>
+        )}
+      </div>
+    </div>
+    
+    <div className="pb-16"></div>
+  </>
+)}
 
       {/* Mobile Sidebar Menu (Hamburger) */}
       <AnimatePresence>
