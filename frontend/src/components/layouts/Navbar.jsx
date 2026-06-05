@@ -150,12 +150,10 @@ const Navbar = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           {/* Desktop Layout */}
           <div className="hidden md:flex justify-between items-center py-4">
-            {/* Logo - Left side on desktop */}
             <Link to="/" className="text-xl md:text-2xl tracking-wide font-light text-gray-800 hover:text-warm transition">
               LUXE HOME
             </Link>
 
-            {/* Centered Navigation Links */}
             <div className="flex items-center gap-8">
               <Link
                 to="/"
@@ -219,7 +217,6 @@ const Navbar = () => {
               </Link>
             </div>
 
-            {/* Right Icons */}
             <div className="flex items-center gap-4">
               <button onClick={() => setShowSearch(!showSearch)}>
                 <FiSearch className="w-5 h-5 text-gray-600 hover:text-gray-800 transition-colors" />
@@ -355,9 +352,9 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Mobile Layout - Centered Logo with top margin, reduced white bar */}
-          <div className="flex md:hidden justify-center items-center pt-10 pb-1">
-            <Link to="/" className="text-2xl tracking-wide font-light text-gray-800 hover:text-warm transition">
+          {/* Mobile Layout - REDUCED HEIGHT (minimal padding) */}
+          <div className="flex md:hidden justify-center items-center pt-5 pb-1">
+            <Link to="/" className="text-xl tracking-wide font-light text-gray-800 hover:text-warm transition">
               LUXE HOME
             </Link>
           </div>
@@ -394,7 +391,6 @@ const Navbar = () => {
         <>
           <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-100 z-50 md:hidden">
             <div className="flex justify-around items-center py-2 px-2">
-              {/* Hamburger Menu Icon */}
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition text-gray-500 hover:text-warm"
@@ -403,7 +399,6 @@ const Navbar = () => {
                 <span className="text-[10px] font-medium">Menu</span>
               </button>
 
-              {/* Wishlist */}
               <Link
                 to="/wishlist"
                 className="flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition text-gray-500 hover:text-warm"
@@ -412,7 +407,6 @@ const Navbar = () => {
                 <span className="text-[10px] font-medium">Wishlist</span>
               </Link>
 
-              {/* Home */}
               <Link
                 to="/"
                 className={`flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition ${
@@ -423,7 +417,6 @@ const Navbar = () => {
                 <span className="text-[10px] font-medium">Home</span>
               </Link>
 
-              {/* Cart */}
               <Link
                 to="/cart"
                 className="relative flex flex-col items-center gap-1 py-1 px-3 rounded-lg transition text-gray-500 hover:text-warm"
@@ -439,7 +432,6 @@ const Navbar = () => {
                 <span className="text-[10px] font-medium">Cart</span>
               </Link>
 
-              {/* Profile with Dropdown */}
               <div className="relative user-dropdown">
                 <button
                   onClick={toggleDropdown}
@@ -531,7 +523,6 @@ const Navbar = () => {
             </div>
           </div>
           
-          {/* Add padding to bottom on mobile */}
           <div className="pb-16"></div>
         </>
       )}
