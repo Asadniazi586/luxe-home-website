@@ -10,4 +10,10 @@ export const productService = {
     const response = await api.get(`/products/${id}`);
     return response.data;
   },
+
+  // Add this delete method
+  deleteProduct: async (id) => {
+    const response = await api.delete(`/products/${id}`);
+    return response.data;
+  },
 };

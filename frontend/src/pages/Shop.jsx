@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FiGrid, FiList, FiFilter, FiX, FiStar, FiPackage, FiTag, FiRefreshCw, FiPlus } from 'react-icons/fi'
+import { FiGrid, FiList, FiFilter, FiX, FiStar, FiPackage, FiTag, FiRefreshCw, FiPlus, FiTrash2, FiEdit2 } from 'react-icons/fi'
 import ProductCard from '../components/ui/ProductCard'
 import { productService } from '../services/productService'
 import { useAuth } from '../contexts/AuthContext'
+import toast from 'react-hot-toast'
+import ConfirmDeleteModal from '../components/ui/ConfirmDeleteModal'
 
 const Shop = () => {
   const [searchParams] = useSearchParams()
@@ -16,6 +18,11 @@ const Shop = () => {
   const [selectedBadge, setSelectedBadge] = useState('all')
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  
+  // Delete modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [productToDelete, setProductToDelete] = useState(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   
   const productsSectionRef = useRef(null)
 
@@ -30,22 +37,61 @@ const Shop = () => {
     { id: 'Sale', name: 'On Sale', icon: FiTag },
   ]
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true)
-        const data = await productService.getProducts()
-        setProducts(data.products || [])
-      } catch (error) {
-        console.error('Error fetching products:', error)
-        setProducts([])
-      } finally {
-        setLoading(false)
-      }
+  const fetchProducts = async () => {
+    try {
+      setLoading(true)
+      const data = await productService.getProducts()
+      setProducts(data.products || [])
+    } catch (error) {
+      console.error('Error fetching products:', error)
+      setProducts([])
+    } finally {
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
     fetchProducts()
   }, [])
-  
+
+  const handleDeleteClick = (product, e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setProductToDelete(product)
+    setDeleteModalOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!productToDelete) return
+    
+    setIsDeleting(true)
+    try {
+      await productService.deleteProduct(productToDelete._id || productToDelete.id)
+      toast.success('Product deleted successfully!')
+      await fetchProducts()
+      setDeleteModalOpen(false)
+      setProductToDelete(null)
+    } catch (error) {
+      console.error('Error deleting product:', error)
+      toast.error('Failed to delete product')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleCloseModal = () => {
+    if (!isDeleting) {
+      setDeleteModalOpen(false)
+      setProductToDelete(null)
+    }
+  }
+
+  const handleEditProduct = (product, e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    window.location.href = `/admin/add-product?edit=${product._id || product.id}`
+  }
+
   const filteredProducts = products
     .filter(p => selectedCategory === 'all' || p.category === selectedCategory)
     .filter(p => selectedBadge === 'all' || p.badge === selectedBadge)
@@ -244,7 +290,73 @@ const Shop = () => {
                 }`}
               >
                 {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} viewMode={viewMode} isAdmin={isAdmin} />
+                  <div key={product._id || product.id} className="relative group">
+                    <Link to={`/product/${product._id || product.id}`}>
+                      <div className="relative overflow-hidden rounded-2xl mb-4 bg-[#F5F4F0]">
+                        <img 
+                          src={product.image} 
+                          alt={product.name}
+                          className="w-full aspect-square object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                        {product.badge && (
+                          <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-[#2C2C2C] text-xs px-2 py-1 rounded">
+                            {product.badge}
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="font-['Cormorant_Garamond',_Georgia,_serif] text-lg text-[#2C2C2C] mb-2">
+                        {product.name}
+                      </h3>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="flex gap-0.5">
+                          {[...Array(5)].map((_, i) => (
+                            <FiStar key={i} className={`w-3 h-3 ${i < Math.floor(product.rating) ? 'text-[#D4A574] fill-[#D4A574]' : 'text-gray-300'}`} />
+                          ))}
+                        </div>
+                        <span className="text-xs text-gray-500">{product.rating}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-[#2C2C2C] font-medium">${product.price}</p>
+                        {product.originalPrice && (
+                          <p className="text-gray-400 text-sm line-through">${product.originalPrice}</p>
+                        )}
+                      </div>
+                    </Link>
+                    
+                    {/* Admin Action Buttons - Edit & Delete */}
+                    {isAdmin && (
+                      <div className="absolute top-3 right-3 flex gap-2">
+                        <button
+                          onClick={(e) => handleEditProduct(product, e)}
+                          className="bg-white/90 backdrop-blur-sm p-2 rounded-full hover:bg-[#D4A574] hover:text-white transition shadow-md"
+                          title="Edit Product"
+                        >
+                          <FiEdit2 className="w-3.5 h-3.5 text-[#2C2C2C] hover:text-white" />
+                        </button>
+                        <button
+                          onClick={(e) => handleDeleteClick(product, e)}
+                          className="bg-white/90 backdrop-blur-sm p-2 rounded-full hover:bg-red-500 hover:text-white transition shadow-md"
+                          title="Delete Product"
+                        >
+                          <FiTrash2 className="w-3.5 h-3.5 text-[#2C2C2C] hover:text-white" />
+                        </button>
+                      </div>
+                    )}
+                    
+                    {/* Add to Cart Button - Only for normal users */}
+                    {!isAdmin && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          // Add to cart functionality here
+                        }}
+                        className="w-full mt-4 border border-[#2C2C2C] text-[#2C2C2C] py-2 text-[11px] tracking-[0.2em] uppercase hover:bg-[#2C2C2C] hover:text-white transition-all duration-300 flex items-center justify-center gap-2 font-['Inter',_sans-serif] font-medium rounded-full"
+                      >
+                        <FiPlus className="w-3.5 h-3.5" /> Add to Cart
+                      </button>
+                    )}
+                  </div>
                 ))}
               </motion.div>
             </AnimatePresence>
@@ -265,6 +377,15 @@ const Shop = () => {
           </div>
         </div>
       </div>
+      
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={deleteModalOpen}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmDelete}
+        productName={productToDelete?.name || ''}
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

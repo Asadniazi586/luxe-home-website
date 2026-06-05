@@ -135,7 +135,6 @@ const Navbar = () => {
   const handleLogout = () => {
     setIsDropdownOpen(false)
     logout()
-    // navigate('/login')
   }
 
   const handleNavigation = (path) => {
@@ -371,37 +370,7 @@ const Navbar = () => {
                   Admin Panel
                 </button>
               )}
-              {user && !isAdmin && (
-                <>
-                  <button 
-                    onClick={() => {
-                      navigate('/dashboard')
-                      setIsOpen(false)
-                    }}
-                    className="block py-2 text-gray-600 hover:text-gray-800 w-full text-left"
-                  >
-                    Dashboard
-                  </button>
-                  <button 
-                    onClick={() => {
-                      navigate('/dashboard?tab=orders')
-                      setIsOpen(false)
-                    }}
-                    className="block py-2 text-gray-600 hover:text-gray-800 w-full text-left"
-                  >
-                    My Orders
-                  </button>
-                  <button 
-                    onClick={() => {
-                      navigate('/wishlist')
-                      setIsOpen(false)
-                    }}
-                    className="block py-2 text-gray-600 hover:text-gray-800 w-full text-left"
-                  >
-                    Wishlist
-                  </button>
-                </>
-              )}
+              {/* Logout link removed from hamburger menu - only search remains */}
               <div className="pt-4 border-t border-gray-100">
                 <form onSubmit={handleSearch} className="relative">
                   <input

@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useScroll, useTransform } from 'framer-motion'
-import { FiArrowRight, FiStar, FiTruck, FiRefreshCw, FiShoppingBag, FiHeart, FiChevronRight, FiPlus, FiEdit2 } from 'react-icons/fi'
+import { FiArrowRight, FiStar, FiTruck, FiRefreshCw, FiShoppingBag, FiHeart, FiChevronRight, FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi'
 import { productService } from '../services/productService'
 import { useAuth } from '../contexts/AuthContext'
 import { useCart } from '../contexts/CartContext'
 import toast from 'react-hot-toast'
+import ConfirmDeleteModal from '../components/ui/ConfirmDeleteModal'
 
 const Home = () => {
   const { scrollYProgress } = useScroll()
@@ -16,25 +17,31 @@ const Home = () => {
   const { user } = useAuth()
   const { addToCart } = useCart()
   
+  // Delete modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [productToDelete, setProductToDelete] = useState(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  
   const isAdmin = user?.role === 'admin'
   
   // Ref to track if toast has been shown for a product
   const lastAddedProductRef = useRef(null)
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true)
-        const data = await productService.getProducts()
-        const products = data.products || []
-        setBestsellers(products.slice(0, 4))
-      } catch (error) {
-        console.error('Error fetching products:', error)
-        setBestsellers([])
-      } finally {
-        setLoading(false)
-      }
+  const fetchProducts = async () => {
+    try {
+      setLoading(true)
+      const data = await productService.getProducts()
+      const products = data.products || []
+      setBestsellers(products.slice(0, 4))
+    } catch (error) {
+      console.error('Error fetching products:', error)
+      setBestsellers([])
+    } finally {
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
     fetchProducts()
   }, [])
 
@@ -55,12 +62,11 @@ const Home = () => {
     e.preventDefault()
     e.stopPropagation()
     
-    // Prevent duplicate toasts for the same product within 500ms
     const now = Date.now()
     if (lastAddedProductRef.current && 
         lastAddedProductRef.current.id === product._id && 
         now - lastAddedProductRef.current.time < 500) {
-      return // Skip if same product added within 500ms
+      return
     }
     
     lastAddedProductRef.current = {
@@ -68,10 +74,7 @@ const Home = () => {
       time: now
     }
     
-    // Pass suppressToast: true as 5th parameter to prevent CartContext from showing its own toast
     addToCart(product, 1, '', '', true)
-    
-    // Show single toast from Home component only
     toast.success(`${product.name} added to cart!`)
   }
 
@@ -79,6 +82,38 @@ const Home = () => {
     e.preventDefault()
     e.stopPropagation()
     window.location.href = `/admin/add-product?edit=${product._id || product.id}`
+  }
+
+  const handleDeleteClick = (product, e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setProductToDelete(product)
+    setDeleteModalOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!productToDelete) return
+    
+    setIsDeleting(true)
+    try {
+      await productService.deleteProduct(productToDelete._id || productToDelete.id)
+      toast.success('Product deleted successfully!')
+      await fetchProducts()
+      setDeleteModalOpen(false)
+      setProductToDelete(null)
+    } catch (error) {
+      console.error('Error deleting product:', error)
+      toast.error('Failed to delete product')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleCloseModal = () => {
+    if (!isDeleting) {
+      setDeleteModalOpen(false)
+      setProductToDelete(null)
+    }
   }
 
   const categories = [
@@ -167,7 +202,6 @@ const Home = () => {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="flex flex-col items-center justify-center"
           >
-            {/* Badge - Top element */}
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -181,17 +215,14 @@ const Home = () => {
               </div>
             </motion.div>
             
-            {/* Main Heading */}
             <h1 className="font-['Cormorant_Garamond',_Georgia,_serif] font-light text-6xl sm:text-6xl md:text-7xl lg:text-8xl text-[#D4A574] tracking-tight mb-5 leading-[1.15]">
               Elevate Your<br />Sleep Experience
             </h1>
             
-            {/* Description */}
             <p className="text-[#D4A574] text-base md:text-lg max-w-xl mx-auto mb-8 leading-relaxed font-['Inter',_sans-serif] font-light tracking-wide">
               Premium fabrics designed for those who appreciate texture,<br />detail and timeless sophistication.
             </p>
             
-            {/* Button */}
             <motion.div
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -315,7 +346,7 @@ const Home = () => {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
           >
             {bestsellers.map((product) => (
-              <motion.div key={product._id || product.id} variants={itemVariants} className="group">
+              <motion.div key={product._id || product.id} variants={itemVariants} className="group relative">
                 <Link to={`/product/${product._id || product.id}`}>
                   <div className="relative overflow-hidden mb-5 bg-[#F5F4F0] shadow-sm rounded-2xl">
                     <img 
@@ -327,15 +358,6 @@ const Home = () => {
                       <span className="absolute top-4 left-4 bg-white/95 text-[#2C2C2C] text-[10px] tracking-[0.15em] px-3 py-1 uppercase font-['Inter',_sans-serif] font-medium rounded-full">
                         {product.badge}
                       </span>
-                    )}
-                    {isAdmin && (
-                      <button
-                        onClick={(e) => handleEditProduct(product, e)}
-                        className="absolute top-4 right-4 bg-white/95 p-2 rounded-full hover:bg-[#D4A574] hover:text-white transition shadow-md"
-                        title="Edit Product"
-                      >
-                        <FiEdit2 className="w-3.5 h-3.5 text-[#2C2C2C] hover:text-white" />
-                      </button>
                     )}
                   </div>
                   <h3 className="font-['Cormorant_Garamond',_Georgia,_serif] text-lg text-[#2C2C2C] mb-2 group-hover:text-[#D4A574] transition-colors tracking-wide">
@@ -356,6 +378,28 @@ const Home = () => {
                     )}
                   </div>
                 </Link>
+                
+                {/* Admin Action Buttons - Edit & Delete */}
+                {isAdmin && (
+                  <div className="absolute top-4 right-4 flex gap-2">
+                    <button
+                      onClick={(e) => handleEditProduct(product, e)}
+                      className="bg-white/95 p-2 rounded-full hover:bg-[#D4A574] hover:text-white transition shadow-md"
+                      title="Edit Product"
+                    >
+                      <FiEdit2 className="w-3.5 h-3.5 text-[#2C2C2C] hover:text-white" />
+                    </button>
+                    <button
+                      onClick={(e) => handleDeleteClick(product, e)}
+                      className="bg-white/95 p-2 rounded-full hover:bg-red-500 hover:text-white transition shadow-md"
+                      title="Delete Product"
+                    >
+                      <FiTrash2 className="w-3.5 h-3.5 text-[#2C2C2C] hover:text-white" />
+                    </button>
+                  </div>
+                )}
+                
+                {/* Add to Cart Button */}
                 {!isAdmin && (
                   <button
                     onClick={(e) => handleAddToCart(product, e)}
@@ -466,6 +510,15 @@ const Home = () => {
           </motion.div>
         </div>
       </section>
+      
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={deleteModalOpen}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmDelete}
+        productName={productToDelete?.name || ''}
+        isLoading={isDeleting}
+      />
     </div>
   )
 }
