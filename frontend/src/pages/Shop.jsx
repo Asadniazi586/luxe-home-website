@@ -5,12 +5,14 @@ import { FiGrid, FiList, FiFilter, FiX, FiStar, FiPackage, FiTag, FiRefreshCw, F
 import ProductCard from '../components/ui/ProductCard'
 import { productService } from '../services/productService'
 import { useAuth } from '../contexts/AuthContext'
+import { useCart } from '../contexts/CartContext'  // ADD THIS IMPORT
 import toast from 'react-hot-toast'
 import ConfirmDeleteModal from '../components/ui/ConfirmDeleteModal'
 
 const Shop = () => {
   const [searchParams] = useSearchParams()
   const { user } = useAuth()
+  const { addToCart } = useCart()  // ADD THIS LINE
   const [filterOpen, setFilterOpen] = useState(false)
   const [viewMode, setViewMode] = useState('grid')
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all')
@@ -27,6 +29,13 @@ const Shop = () => {
   const productsSectionRef = useRef(null)
 
   const isAdmin = user?.role === 'admin'
+
+  // Add this function for adding to cart
+  const handleAddToCart = (product, e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    addToCart(product, 1)
+  }
 
   const categories = ['all', 'bedding', 'bath', 'decor']
   const badges = [
@@ -343,14 +352,10 @@ const Shop = () => {
                       </div>
                     )}
                     
-                    {/* Add to Cart Button - Only for normal users */}
+                    {/* Add to Cart Button - Only for normal users - NOW WORKING */}
                     {!isAdmin && (
                       <button
-                        onClick={(e) => {
-                          e.preventDefault()
-                          e.stopPropagation()
-                          // Add to cart functionality here
-                        }}
+                        onClick={(e) => handleAddToCart(product, e)}
                         className="w-full mt-4 border border-[#2C2C2C] text-[#2C2C2C] py-2 text-[11px] tracking-[0.2em] uppercase hover:bg-[#2C2C2C] hover:text-white transition-all duration-300 flex items-center justify-center gap-2 font-['Inter',_sans-serif] font-medium rounded-full"
                       >
                         <FiPlus className="w-3.5 h-3.5" /> Add to Cart
