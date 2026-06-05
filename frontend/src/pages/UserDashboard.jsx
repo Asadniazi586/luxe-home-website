@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FiUser, FiPackage, FiHeart, FiSettings, FiLogOut, FiShoppingBag, FiCamera, FiX, FiTruck } from 'react-icons/fi'
+import { FiUser, FiPackage, FiHeart, FiSettings, FiLogOut, FiShoppingBag, FiCamera, FiX, FiTruck,FiEye } from 'react-icons/fi'
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../contexts/CartContext";
 import { useWishlist } from "../contexts/WishlistContext";
@@ -234,7 +234,7 @@ const UserDashboard = () => {
   }
 
   return (
-    <div className="bg-cream min-h-screen pt-20">
+    <div className="bg-cream min-h-screen">
       <div className="container mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Sidebar */}
@@ -312,74 +312,82 @@ const UserDashboard = () => {
               transition={{ duration: 0.3 }}
               className="bg-white rounded-xl shadow-sm p-6"
             >
-              {activeTab === "overview" && (
-                <div>
-                  <h2 className="text-xl font-light text-charcoal mb-6">
-                    Dashboard Overview
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                    <div className="bg-gray-50 rounded-lg p-4 text-center">
-                      <FiShoppingBag className="w-8 h-8 mx-auto text-warm mb-2" />
-                      <div className="text-2xl font-light text-charcoal">
-                        {orders.length}
-                      </div>
-                      <div className="text-xs text-gray-500">Total Orders</div>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4 text-center">
-                      <FiHeart className="w-8 h-8 mx-auto text-warm mb-2" />
-                      <div className="text-2xl font-light text-charcoal">
-                        {wishlistItems.length}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        Wishlist Items
-                      </div>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4 text-center">
-                      <FiPackage className="w-8 h-8 mx-auto text-warm mb-2" />
-                      <div className="text-2xl font-light text-charcoal">
-                        {cartItems.length}
-                      </div>
-                      <div className="text-xs text-gray-500">Cart Items</div>
-                    </div>
-                  </div>
-                  <div className="border-t pt-6">
-                    <h3 className="font-medium text-charcoal mb-4">
-                      Recent Activity
-                    </h3>
-                    {orders.length > 0 ? (
-                      <div className="space-y-3">
-                        {orders.slice(0, 3).map((order) => (
-                          <div
-                            key={order._id}
-                            className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
-                          >
-                            <div>
-                              <p className="text-sm font-medium text-charcoal">
-                                Order #{getDisplayOrderId(order)}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {new Date(order.createdAt).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm font-medium text-charcoal">
-                                ${order.totalPrice?.toFixed(2)}
-                              </p>
-                              <span
-                                className={`text-xs px-2 py-0.5 rounded-full ${getStatusColor(order.status)}`}
-                              >
-                                {getStatusBadge(order.status)}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-gray-500 text-sm">No orders yet.</p>
-                    )}
-                  </div>
+ {activeTab === "overview" && (
+  <div>
+    <h2 className="text-lg sm:text-xl font-light text-charcoal mb-4 sm:mb-6">
+      Dashboard Overview
+    </h2>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
+      <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center">
+        <FiShoppingBag className="w-6 h-6 sm:w-8 sm:h-8 mx-auto text-warm mb-2" />
+        <div className="text-xl sm:text-2xl font-light text-charcoal">
+          {orders.length}
+        </div>
+        <div className="text-[10px] sm:text-xs text-gray-500">Total Orders</div>
+      </div>
+      <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center">
+        <FiHeart className="w-6 h-6 sm:w-8 sm:h-8 mx-auto text-warm mb-2" />
+        <div className="text-xl sm:text-2xl font-light text-charcoal">
+          {wishlistItems.length}
+        </div>
+        <div className="text-[10px] sm:text-xs text-gray-500">
+          Wishlist Items
+        </div>
+      </div>
+      <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-center">
+        <FiPackage className="w-6 h-6 sm:w-8 sm:h-8 mx-auto text-warm mb-2" />
+        <div className="text-xl sm:text-2xl font-light text-charcoal">
+          {cartItems.length}
+        </div>
+        <div className="text-[10px] sm:text-xs text-gray-500">Cart Items</div>
+      </div>
+    </div>
+    <div className="border-t pt-4 sm:pt-6">
+      <h3 className="font-medium text-charcoal mb-3 sm:mb-4 text-sm sm:text-base">
+        Recent Activity
+      </h3>
+      {orders.length > 0 ? (
+        <div className="space-y-3">
+          {orders.slice(0, 3).map((order) => (
+            <div
+              key={order._id}
+              className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-3 bg-gray-50 rounded-lg"
+            >
+              <div className="flex-1">
+                <p className="text-sm font-medium text-charcoal">
+                  Order #{getDisplayOrderId(order)}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {new Date(order.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+              <div className="flex items-center justify-between sm:justify-end gap-4">
+                <div className="flex items-center gap-3">
+                  <p className="text-base font-semibold text-charcoal">
+                    ${order.totalPrice?.toFixed(2)}
+                  </p>
+                  <span
+                    className={`inline-block text-[10px] sm:text-xs px-2 py-0.5 rounded-full ${getStatusColor(order.status)}`}
+                  >
+                    {getStatusBadge(order.status)}
+                  </span>
                 </div>
-              )}
+                <Link
+                  to={`/order/${order._id}`}
+                  className="text-warm hover:underline text-sm flex items-center gap-1 whitespace-nowrap"
+                >
+                  <FiEye className="w-3 h-3" /> View
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-gray-500 text-sm">No orders yet.</p>
+      )}
+    </div>
+  </div>
+)}
           
               {activeTab === "orders" && (
                 <div>
@@ -442,9 +450,16 @@ const UserDashboard = () => {
                                 ` +${order.orderItems.length - 2} more`}
                             </div>
                           )}
-                          <div className="mt-2 text-xs text-gray-400">
-                            Last updated:{" "}
-                            {new Date(order.updatedAt).toLocaleString()}
+                          <div className="mt-3 pt-3 border-t flex justify-between items-center">
+                            <div className="text-xs text-gray-400">
+                              Last updated: {new Date(order.updatedAt).toLocaleString()}
+                            </div>
+                            <Link
+                              to={`/order/${order._id}`}
+                              className="text-sm text-warm hover:underline font-medium"
+                            >
+                              View Details →
+                            </Link>
                           </div>
                         </div>
                       ))}

@@ -72,7 +72,7 @@ const Order = () => {
   }
 
   return (
-    <div className="bg-cream min-h-screen pt-20">
+    <div className="bg-cream min-h-screen">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
         <div className="mb-8">
