@@ -20,11 +20,11 @@ const AdminLogin = () => {
     }
   }, [user, authLoading])
 
-  // Show loading while checking
+  // Show loading circle while checking auth
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center p-4">
-        <div className="text-center">Loading...</div>
+      <div className="bg-cream min-h-screen flex items-center justify-center">
+        <div className="w-10 h-10 border-2 border-[#D4A574] border-t-[#2C2C2C] rounded-full animate-spin" />
       </div>
     )
   }
