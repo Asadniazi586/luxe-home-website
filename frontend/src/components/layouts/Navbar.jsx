@@ -356,8 +356,8 @@ const Navbar = () => {
           </div>
 
           {/* Mobile Layout - Centered Logo with top margin, reduced white bar */}
-          <div className="flex md:hidden justify-center items-center pt-13 pb-1">
-            <Link to="/" className="text-3xl tracking-wide font-light text-gray-800 hover:text-warm transition">
+          <div className="flex md:hidden justify-center items-center pt-10 pb-1">
+            <Link to="/" className="text-2xl tracking-wide font-light text-gray-800 hover:text-warm transition">
               LUXE HOME
             </Link>
           </div>
