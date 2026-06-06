@@ -68,8 +68,10 @@ export const AuthProvider = ({ children }) => {
   const register = async (name, email, password) => {
     try {
       const data = await authService.register({ name, email, password })
-      setUser(data)
-      toast.success('Registration successful!')
+      // REMOVE THIS LINE - Do NOT auto-login user after registration
+      // setUser(data)  // <-- COMMENT OR REMOVE THIS LINE
+      
+      toast.success('Registration successful! Please login.')
       return { success: true }
     } catch (error) {
       const message = error.response?.data?.message || 'Registration failed'

@@ -56,10 +56,10 @@ const Login = () => {
 
   // Show login form when user is NOT logged in
   return (
-    <div className="bg-cream min-h-screen flex items-center justify-center pt-0 md:pt-2">
+    <div className="bg-cream min-h-screen flex items-center justify-center">
       <div className="container mx-auto px-4">
         <div className="max-w-md mx-auto">
-          <div className="text-center mb-8">
+          <div className="text-center mb-5">
             <h1 className="text-3xl font-light text-charcoal">Welcome Back</h1>
             <p className="text-gray-500 text-sm mt-2">Sign in to your account</p>
           </div>
