@@ -2,10 +2,12 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 
+console.log('🔵 Loading passwordController...');
+
 // Configure email transporter for Brevo
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
+  port: parseInt(process.env.EMAIL_PORT),
   secure: false,
   auth: {
     user: process.env.EMAIL_USER,
@@ -13,34 +15,72 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Verify transporter configuration
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('🔴 Transporter verification failed:', error);
+  } else {
+    console.log('🟢 Transporter ready to send emails');
+  }
+});
+
 // @desc    Send password reset email
 // @route   POST /api/auth/forgot-password
 // @access  Public
 export const forgotPassword = async (req, res) => {
+  console.log('🔵 === FORGOT PASSWORD START ===');
+  console.log('🔵 Request body:', req.body);
+  
   try {
     const { email } = req.body;
+    console.log('🔵 Email received:', email);
+    
+    if (!email) {
+      console.log('🔴 No email provided');
+      return res.status(400).json({ message: 'Email is required' });
+    }
+    
+    console.log('🔵 Looking for user in database...');
     const user = await User.findOne({ email });
-
+    console.log('🔵 User found:', user ? 'YES' : 'NO');
+    
     if (!user) {
-      // For security, don't reveal that user doesn't exist
+      console.log('🔵 User not found - returning success message for security');
       return res.status(200).json({ message: 'If an account exists, a reset link has been sent.' });
     }
-
-    // Generate reset token (expires in 1 hour)
+    
+    console.log('🔵 User found. Name:', user.name);
+    console.log('🔵 User ID:', user._id);
+    
+    // Check if JWT_RESET_SECRET exists
+    if (!process.env.JWT_RESET_SECRET) {
+      console.error('🔴 JWT_RESET_SECRET is not defined in environment variables');
+      return res.status(500).json({ message: 'Server configuration error' });
+    }
+    
+    console.log('🔵 Generating reset token...');
     const resetToken = jwt.sign(
       { id: user._id },
       process.env.JWT_RESET_SECRET,
       { expiresIn: '1h' }
     );
-
-    // Save reset token to user
+    console.log('🔵 Reset token generated:', resetToken.substring(0, 20) + '...');
+    
+    console.log('🔵 Saving token to user...');
     user.resetPasswordToken = resetToken;
-    user.resetPasswordExpire = Date.now() + 3600000; // 1 hour
+    user.resetPasswordExpire = Date.now() + 3600000;
     await user.save();
-
-    // Create reset URL
+    console.log('🔵 User saved with reset token');
+    
+    // Check if FRONTEND_URL exists
+    if (!process.env.FRONTEND_URL) {
+      console.error('🔴 FRONTEND_URL is not defined in environment variables');
+      return res.status(500).json({ message: 'Server configuration error' });
+    }
+    
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-
+    console.log('🔵 Reset URL created:', resetUrl);
+    
     // Email HTML template
     const emailHtml = `
       <!DOCTYPE html>
@@ -83,19 +123,27 @@ export const forgotPassword = async (req, res) => {
       </body>
       </html>
     `;
-
-    // Send email
-    await transporter.sendMail({
+    
+    console.log('🔵 Attempting to send email...');
+    console.log('🔵 To:', email);
+    console.log('🔵 From:', process.env.EMAIL_FROM);
+    
+    const info = await transporter.sendMail({
       from: process.env.EMAIL_FROM,
       to: email,
       subject: 'Reset Your LUXE HOME Password',
       html: emailHtml,
     });
-
+    
+    console.log('🟢 Email sent successfully!');
+    console.log('🟢 Message ID:', info.messageId);
+    
     res.status(200).json({ message: 'Password reset link sent to your email' });
   } catch (error) {
-    console.error('Forgot password error:', error);
-    res.status(500).json({ message: 'Failed to send reset email' });
+    console.error('🔴 Forgot password error:', error.message);
+    console.error('🔴 Full error:', error);
+    console.error('🔴 Error stack:', error.stack);
+    res.status(500).json({ message: 'Failed to send reset email', error: error.message });
   }
 };
 
@@ -103,12 +151,16 @@ export const forgotPassword = async (req, res) => {
 // @route   POST /api/auth/reset-password/:token
 // @access  Public
 export const resetPassword = async (req, res) => {
+  console.log('🔵 === RESET PASSWORD START ===');
+  console.log('🔵 Token received:', req.params.token?.substring(0, 20) + '...');
+  
   try {
     const { token } = req.params;
     const { password } = req.body;
-
-    // Verify token
+    
+    console.log('🔵 Verifying token...');
     const decoded = jwt.verify(token, process.env.JWT_RESET_SECRET);
+    console.log('🔵 Token verified. User ID:', decoded.id);
     
     const user = await User.findOne({
       _id: decoded.id,
@@ -117,21 +169,23 @@ export const resetPassword = async (req, res) => {
     });
     
     if (!user) {
+      console.log('🔴 User not found or token expired');
       return res.status(400).json({ message: 'Invalid or expired reset link' });
     }
-
-    // Update password
+    
+    console.log('🔵 User found. Updating password...');
     user.password = password;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
     await user.save();
-
+    
+    console.log('🟢 Password reset successful!');
     res.status(200).json({ message: 'Password reset successful! Please login with your new password.' });
   } catch (error) {
-    console.error('Reset password error:', error);
+    console.error('🔴 Reset password error:', error.message);
     if (error.name === 'TokenExpiredError') {
       return res.status(400).json({ message: 'Reset link has expired' });
     }
-    res.status(500).json({ message: 'Failed to reset password' });
+    res.status(500).json({ message: 'Failed to reset password', error: error.message });
   }
 };

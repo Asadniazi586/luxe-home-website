@@ -35,8 +35,23 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
 }));
 
-// Remove the problematic line - DO NOT use app.options('*', cors())
-// Preflight requests are automatically handled by cors() middleware
+// ========== ADD DEBUG ENDPOINT HERE ==========
+app.get('/api/debug', (req, res) => {
+  res.json({
+    status: 'ok',
+    env: {
+      EMAIL_HOST: process.env.EMAIL_HOST ? 'set' : 'missing',
+      EMAIL_PORT: process.env.EMAIL_PORT ? 'set' : 'missing',
+      EMAIL_USER: process.env.EMAIL_USER ? 'set' : 'missing',
+      EMAIL_PASS: process.env.EMAIL_PASS ? 'set' : 'missing',
+      EMAIL_FROM: process.env.EMAIL_FROM ? 'set' : 'missing',
+      FRONTEND_URL: process.env.FRONTEND_URL ? 'set' : 'missing',
+      JWT_RESET_SECRET: process.env.JWT_RESET_SECRET ? 'set' : 'missing',
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+// ========== END DEBUG ENDPOINT ==========
 
 app.get('/', (req, res) => {
   res.json({ message: 'LUXE HOME API is running! 🚀' });
