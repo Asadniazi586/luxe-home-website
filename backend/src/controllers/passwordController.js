@@ -154,12 +154,12 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
+
 // @desc    Reset password with token
 // @route   POST /api/auth/reset-password/:token
 // @access  Public
 export const resetPassword = async (req, res) => {
   console.log('🔵 === RESET PASSWORD START ===');
-  console.log('🔵 Token received:', req.params.token?.substring(0, 20) + '...');
   
   try {
     const { token } = req.params;
@@ -167,7 +167,6 @@ export const resetPassword = async (req, res) => {
     
     console.log('🔵 Verifying token...');
     const decoded = jwt.verify(token, process.env.JWT_RESET_SECRET);
-    console.log('🔵 Token verified. User ID:', decoded.id);
     
     const user = await User.findOne({
       _id: decoded.id,
@@ -176,7 +175,6 @@ export const resetPassword = async (req, res) => {
     });
     
     if (!user) {
-      console.log('🔴 User not found or token expired');
       return res.status(400).json({ message: 'Invalid or expired reset link' });
     }
     
@@ -186,7 +184,21 @@ export const resetPassword = async (req, res) => {
     user.resetPasswordExpire = undefined;
     await user.save();
     
-    console.log('🟢 Password reset successful!');
+    // Clear old auth cookies
+    res.clearCookie('accessToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    });
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    });
+    
+    console.log('🟢 Password reset successful! Cookies cleared.');
     res.status(200).json({ message: 'Password reset successful! Please login with your new password.' });
   } catch (error) {
     console.error('🔴 Reset password error:', error.message);
