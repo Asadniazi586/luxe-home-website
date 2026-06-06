@@ -39,7 +39,8 @@ const CookiePolicy = React.lazy(() => import('./pages/CookiePolicy'))
 const NotFound = React.lazy(() => import('./pages/NotFound'))
 const OrderSuccess = React.lazy(()=> import('./pages/OrderSuccess'))
 const OrderTracking = React.lazy(()=>import('./pages/OrderTracking'))
-
+const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'))
+const ResetPassword = React.lazy(() => import('./pages/ResetPassword'))
 // Protected Route Component
 const ProtectedRoute = ({ children, requiredRole }) => {
   const { user, loading } = useAuth()
@@ -117,6 +118,8 @@ function App() {
                           <Route path="/accessibility" element={<Accessibility />} />
                           <Route path="/cookies" element={<CookiePolicy />} />
                           <Route path="*" element={<NotFound />} />
+                          <Route path="/forgot-password" element={<ForgotPassword />} />
+                          <Route path="/reset-password/:token" element={<ResetPassword />} />
                         </Routes>
                       </Suspense>
                     </Layout>
