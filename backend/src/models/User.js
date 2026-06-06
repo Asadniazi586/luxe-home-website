@@ -61,34 +61,20 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// COMPLETELY REWRITTEN pre-save middleware - NO next() issues
+// SIMPLIFIED pre-save middleware - NO next() issues
 userSchema.pre('save', function(next) {
-  console.log('🔵 Pre-save middleware triggered');
-  console.log('🔵 Password modified:', this.isModified('password'));
-  
   // Only hash the password if it has been modified (or is new)
   if (!this.isModified('password')) {
-    console.log('🔵 Password not modified, skipping hash');
     return next();
   }
   
-  console.log('🔵 Hashing password...');
-  
   // Generate salt and hash password
   bcrypt.genSalt(10, (err, salt) => {
-    if (err) {
-      console.error('🔴 Salt generation error:', err);
-      return next(err);
-    }
+    if (err) return next(err);
     
     bcrypt.hash(this.password, salt, (err, hash) => {
-      if (err) {
-        console.error('🔴 Hash generation error:', err);
-        return next(err);
-      }
-      
+      if (err) return next(err);
       this.password = hash;
-      console.log('🔵 Password hashed successfully');
       next();
     });
   });
@@ -96,15 +82,7 @@ userSchema.pre('save', function(next) {
 
 // Match user entered password to hashed password in database
 userSchema.methods.matchPassword = async function(enteredPassword) {
-  console.log('🔵 Matching password for user:', this.email);
-  try {
-    const isMatch = await bcrypt.compare(enteredPassword, this.password);
-    console.log('🔵 Password match result:', isMatch);
-    return isMatch;
-  } catch (error) {
-    console.error('🔴 Password match error:', error);
-    return false;
-  }
+  return await bcrypt.compare(enteredPassword, this.password);
 };
 
 const User = mongoose.model('User', userSchema);

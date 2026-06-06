@@ -66,11 +66,18 @@ export const forgotPassword = async (req, res) => {
     );
     console.log('🔵 Reset token generated:', resetToken.substring(0, 20) + '...');
     
-    console.log('🔵 Saving token to user...');
-    user.resetPasswordToken = resetToken;
-    user.resetPasswordExpire = Date.now() + 3600000;
-    await user.save();
-    console.log('🔵 User saved with reset token');
+    console.log('🔵 Saving token to user using updateOne...');
+    // USE THIS: Update only the reset token fields, not the entire document
+    await User.updateOne(
+      { _id: user._id },
+      { 
+        $set: { 
+          resetPasswordToken: resetToken,
+          resetPasswordExpire: Date.now() + 3600000
+        }
+      }
+    );
+    console.log('🔵 User updated with reset token');
     
     // Check if FRONTEND_URL exists
     if (!process.env.FRONTEND_URL) {
