@@ -92,14 +92,11 @@ export const registerUser = async (req, res) => {
   }
 };
 
-// @desc    Login user (ALLOWS BOTH admin AND normal user)
+// @desc    Login user (ALLOWS BOTH admin AND normal user) - FIXED with cookie clearing
 // @route   POST /api/auth/login
 // @access  Public
 export const loginUser = async (req, res) => {
   try {
-    // Clear any existing cookies first
-    res.clearCookie('accessToken', { path: '/' });
-    res.clearCookie('refreshToken', { path: '/' });
     const { email, password } = req.body;
 
     const user = await User.findOne({ email }).select('+password');
@@ -111,6 +108,20 @@ export const loginUser = async (req, res) => {
     if (!isPasswordMatch) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
+
+    // Clear any existing cookies first (FIX for "no refresh token" error)
+    res.clearCookie('accessToken', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      path: '/',
+    });
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      path: '/',
+    });
 
     const { accessToken, refreshToken } = generateTokens(user.id, user.role);
     setTokenCookies(res, accessToken, refreshToken);
@@ -165,7 +176,7 @@ export const refreshAccessToken = async (req, res) => {
   }
 };
 
-// @desc    Admin Login (Separate admin panel login)
+// @desc    Admin Login (Separate admin panel login) - FIXED with cookie clearing
 // @route   POST /api/auth/admin/login
 // @access  Public
 export const adminLogin = async (req, res) => {
@@ -190,6 +201,20 @@ export const adminLogin = async (req, res) => {
           role: 'admin',
         });
       }
+      
+      // Clear any existing cookies first (FIX for "no refresh token" error)
+      res.clearCookie('accessToken', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        path: '/',
+      });
+      res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        path: '/',
+      });
       
       const { accessToken, refreshToken } = generateTokens(adminUser.id, adminUser.role);
       setTokenCookies(res, accessToken, refreshToken);
