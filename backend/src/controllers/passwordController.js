@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import { Resend } from 'resend';
 
 console.log('🔵 Loading passwordController with Resend...');
@@ -25,7 +26,6 @@ export const forgotPassword = async (req, res) => {
     console.log('🔵 User found:', user ? 'YES' : 'NO');
     
     if (!user) {
-      // Security: Don't reveal that user doesn't exist
       return res.status(200).json({ message: 'If an account exists, a reset link has been sent.' });
     }
     
@@ -51,11 +51,11 @@ export const forgotPassword = async (req, res) => {
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
     console.log('🔵 Reset URL created');
     
-    // Send email using Resend (more reliable)
+    // Send email using Resend
     console.log('🔵 Attempting to send email via Resend...');
     
     const { data, error } = await resend.emails.send({
-      from: 'LUXE HOME <onboarding@resend.dev>',
+      from: process.env.EMAIL_FROM || 'LUXE HOME <onboarding@resend.dev>',
       to: email,
       subject: 'Reset Your LUXE HOME Password',
       html: `
@@ -107,17 +107,15 @@ export const forgotPassword = async (req, res) => {
     console.log('🟢 Email sent successfully via Resend!');
     console.log('🟢 Email ID:', data?.id);
     
-    // Send success response IMMEDIATELY (don't wait for email to be delivered)
     return res.status(200).json({ message: 'Password reset link sent to your email' });
     
   } catch (error) {
     console.error('🔴 Forgot password error:', error.message);
-    // Always return success message for security, even on error
     return res.status(200).json({ message: 'If an account exists, a reset link has been sent.' });
   }
 };
 
-// @desc    Reset password with token
+// @desc    Reset password with token - FIXED with proper hashing
 // @route   POST /api/auth/reset-password/:token
 // @access  Public
 export const resetPassword = async (req, res) => {
@@ -127,8 +125,12 @@ export const resetPassword = async (req, res) => {
     const { token } = req.params;
     const { password } = req.body;
     
+    console.log('🔵 Token received:', token?.substring(0, 30) + '...');
+    console.log('🔵 Password length:', password?.length);
+    
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_RESET_SECRET);
+    console.log('🔵 Token verified. User ID:', decoded.id);
     
     const user = await User.findOne({
       _id: decoded.id,
@@ -137,14 +139,29 @@ export const resetPassword = async (req, res) => {
     });
     
     if (!user) {
+      console.log('🔴 User not found or token expired');
       return res.status(400).json({ message: 'Invalid or expired reset link' });
     }
     
-    // Update password
-    user.password = password;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-    await user.save();
+    console.log('🔵 User found. Hashing new password...');
+    
+    // Hash the new password manually (bypassing pre-save issues)
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    
+    // Update password directly using updateOne (avoids pre-save middleware issues)
+    await User.updateOne(
+      { _id: user._id },
+      { 
+        $set: { 
+          password: hashedPassword,
+          resetPasswordToken: undefined,
+          resetPasswordExpire: undefined
+        }
+      }
+    );
+    
+    console.log('🟢 Password updated successfully with hashed value');
     
     // Clear old auth cookies to prevent "no refresh token" error
     res.clearCookie('accessToken', {
@@ -160,7 +177,9 @@ export const resetPassword = async (req, res) => {
       path: '/',
     });
     
-    console.log('🟢 Password reset successful! Cookies cleared.');
+    console.log('🟢 Cookies cleared');
+    console.log('🟢 Password reset successful!');
+    
     res.status(200).json({ message: 'Password reset successful! Please login with your new password.' });
   } catch (error) {
     console.error('🔴 Reset password error:', error.message);
