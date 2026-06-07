@@ -97,6 +97,9 @@ export const registerUser = async (req, res) => {
 // @access  Public
 export const loginUser = async (req, res) => {
   try {
+    // Clear any existing cookies first
+    res.clearCookie('accessToken', { path: '/' });
+    res.clearCookie('refreshToken', { path: '/' });
     const { email, password } = req.body;
 
     const user = await User.findOne({ email }).select('+password');

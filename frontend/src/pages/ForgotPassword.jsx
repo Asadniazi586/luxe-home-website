@@ -10,20 +10,37 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
     if (!email) {
       toast.error('Please enter your email address')
       return
     }
 
     setLoading(true)
+    setError(null)
+    
     try {
-      await authService.forgotPassword(email)
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout')), 15000)
+      })
+      
+      const responsePromise = authService.forgotPassword(email)
+      
+      await Promise.race([responsePromise, timeoutPromise])
+      
+      // Immediately show success page - don't wait for email delivery
       setSubmitted(true)
+      toast.success('Reset link sent! Check your email.')
+      
     } catch (error) {
-      const message = error.response?.data?.message || 'Failed to send reset email'
+      console.error('Forgot password error:', error)
+      const message = error.response?.data?.message || 'Network error. Please try again.'
+      setError(message)
       toast.error(message)
     } finally {
       setLoading(false)
@@ -90,7 +107,8 @@ const ForgotPassword = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warm transition"
+                    disabled={loading}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-warm transition disabled:bg-gray-100"
                     placeholder="hello@example.com"
                   />
                 </div>
@@ -99,12 +117,25 @@ const ForgotPassword = () => {
                 </p>
               </div>
 
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm text-center">
+                  {error}
+                </div>
+              )}
+
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-charcoal text-white py-3 rounded-xl font-medium hover:bg-charcoal-light transition disabled:opacity-50"
+                className="w-full bg-charcoal text-white py-3 rounded-xl font-medium hover:bg-charcoal-light transition disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {loading ? 'Sending...' : 'Send Reset Link'}
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  'Send Reset Link'
+                )}
               </button>
 
               <div className="text-center">
